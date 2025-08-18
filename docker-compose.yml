@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  tournament-site:
+    build: .
+    container_name: tournament-site
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_TELEMETRY_DISABLED=1
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    networks:
+      - tournament-network
+
+networks:
+  tournament-network:
+    driver: bridge
