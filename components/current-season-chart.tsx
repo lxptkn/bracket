@@ -35,14 +35,14 @@ function CalendarBox({ title, subtitle, firstDay, days }: { title: string; subti
   days.forEach((d) => cells.push(d))
 
   return (
-    <div className="bg-stone-800 text-stone-200 p-3 border border-stone-700">
-      <div className="text-center font-serif tracking-wide font-medium mb-2 text-stone-200">{subtitle}</div>
+    <div className="bg-slate-800 text-slate-200 p-3 border border-slate-700">
+      <div className="text-center font-serif tracking-wide font-medium mb-2 text-slate-200">{subtitle}</div>
       <div className="grid grid-cols-7 gap-1 text-center text-sm">
         {['S','M','T','W','T','F','S'].map((d, i) => (
-          <div key={`${d}-${i}`} className="font-medium text-stone-300">{d}</div>
+          <div key={`${d}-${i}`} className="font-medium text-slate-300">{d}</div>
         ))}
         {cells.map((d, i) => (
-          <div key={i} className="py-1 text-stone-100">{d ?? ''}</div>
+          <div key={i} className="py-1 text-slate-100">{d ?? ''}</div>
         ))}
       </div>
     </div>
@@ -69,12 +69,12 @@ export function CurrentSeasonChart({ season }: { season: string | null }) {
   if (!season) return null
   if (!content) {
     return (
-      <Card className="bg-stone-900 border-stone-700">
+      <Card className="bg-slate-900 border-slate-700">
         <CardHeader>
-          <CardTitle className="text-center text-2xl font-serif tracking-wide text-stone-100">Current Season</CardTitle>
+          <CardTitle className="text-center text-2xl font-serif tracking-wide text-slate-100">Current Season</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-center text-sm text-stone-400">Set two months for this season in the admin panel to display the chart.</div>
+          <div className="text-center text-sm text-slate-400">Set two months for this season in the admin panel to display the chart.</div>
         </CardContent>
       </Card>
     )
@@ -83,15 +83,15 @@ export function CurrentSeasonChart({ season }: { season: string | null }) {
   const { m1, m2, s1, s2 } = content
 
   return (
-    <Card className="bg-stone-900 border-stone-700">
+    <Card className="bg-slate-900 border-slate-700">
       <CardHeader>
-        <CardTitle className="text-center text-2xl font-serif tracking-wide text-stone-100">Current Season</CardTitle>
+        <CardTitle className="text-center text-2xl font-serif tracking-wide text-slate-100">Current Season</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Month 1 Column */}
-          <div className="bg-stone-800 border border-stone-700 p-3">
-            <div className="text-center font-serif tracking-wide font-semibold mb-3 text-stone-100">{monthName(m1.monthIndex)}</div>
+          <div className="bg-slate-800 border border-slate-700 p-3">
+            <div className="text-center font-serif tracking-wide font-semibold mb-3 text-slate-100">{monthName(m1.monthIndex)}</div>
             <div className="space-y-4">
               <CalendarBox
                 title={monthName(m1.monthIndex)}
@@ -108,8 +108,8 @@ export function CurrentSeasonChart({ season }: { season: string | null }) {
             </div>
           </div>
           {/* Month 2 Column */}
-          <div className="bg-stone-800 border border-stone-700 p-3">
-            <div className="text-center font-serif tracking-wide font-semibold mb-3 text-stone-100">{monthName(m2.monthIndex)}</div>
+          <div className="bg-slate-800 border border-slate-700 p-3">
+            <div className="text-center font-serif tracking-wide font-semibold mb-3 text-slate-100">{monthName(m2.monthIndex)}</div>
             <div className="space-y-4">
               <CalendarBox
                 title={monthName(m2.monthIndex)}

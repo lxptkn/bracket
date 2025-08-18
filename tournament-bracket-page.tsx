@@ -23,24 +23,24 @@ export default function TournamentBracketPage() {
   }, [season])
 
   return (
-    <div className="min-h-screen bg-stone-800 text-stone-200">
+    <div className="min-h-screen bg-slate-800 text-slate-200">
       {/* Header */}
-      <header className="border-b border-stone-700">
+      <header className="border-b border-slate-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <Trophy className="h-8 w-8 text-stone-300" />
+              <Trophy className="h-8 w-8 text-slate-300" />
               <div>
-                <h1 className="text-3xl font-serif tracking-wide text-stone-100">Citadel Chess</h1>
+                <h1 className="text-3xl font-serif tracking-wide text-slate-100">Bracket</h1>
               </div>
             </div>
             <div className="flex items-center gap-3">
               {session && (
-                <Button variant="outline" size="sm" className="border-stone-600 text-stone-200" onClick={() => window.location.assign('/admin')}>
-                  Admin
-                </Button>
+                              <Button variant="outline" size="sm" className="border-slate-600 text-slate-200" onClick={() => window.location.assign('/admin')}>
+                Admin
+              </Button>
               )}
-              <Button variant="outline" size="sm" className="border-stone-600 text-stone-200" onClick={() => (session ? signOut() : signIn())}>
+              <Button variant="outline" size="sm" className="border-slate-600 text-slate-200" onClick={() => (session ? signOut() : signIn())}>
                 {session ? 'Sign out' : 'Admin Sign in'}
               </Button>
             </div>
@@ -53,12 +53,12 @@ export default function TournamentBracketPage() {
         {/* Season Select + Current Season Chart */}
         <div className="max-w-7xl mx-auto">
           <div className="mb-4 flex items-center gap-3">
-            <span className="text-sm text-stone-300">Season:</span>
+            <span className="text-sm text-slate-300">Season:</span>
             <Select value={season ?? ''} onValueChange={(v)=>setSeason(v)}>
-              <SelectTrigger className="w-40 bg-stone-900 border-stone-700 text-stone-200">
+              <SelectTrigger className="w-40 bg-slate-900 border-slate-700 text-slate-200">
                 <SelectValue placeholder="Select season" />
               </SelectTrigger>
-              <SelectContent className="bg-stone-900 border-stone-700 text-stone-200">
+              <SelectContent className="bg-slate-900 border-slate-700 text-slate-200">
                 {seasons.map(s => (
                   <SelectItem key={s} value={s}>{s}</SelectItem>
                 ))}
@@ -82,19 +82,19 @@ export default function TournamentBracketPage() {
 
         {/* Legend */}
         <div className="max-w-7xl mx-auto">
-          <Card className="mt-6 bg-stone-900 border-stone-700">
+          <Card className="mt-6 bg-slate-900 border-slate-700">
             <CardHeader>
-              <CardTitle className="text-lg font-serif tracking-wide text-stone-200">Legend</CardTitle>
+              <CardTitle className="text-lg font-serif tracking-wide text-slate-200">Legend</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex flex-wrap gap-4 text-sm">
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-4 bg-emerald-900/30 border-l-4 border-emerald-500"></div>
-                  <span className="text-stone-300">Winner</span>
+                  <span className="text-slate-300">Winner</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 bg-stone-800"></div>
-                  <span className="text-stone-300">Eliminated</span>
+                  <div className="w-4 h-4 bg-slate-800"></div>
+                  <span className="text-slate-300">Eliminated</span>
                 </div>
               </div>
             </CardContent>

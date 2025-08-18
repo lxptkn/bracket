@@ -4,74 +4,74 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: rgb(28 25 23); /* stone-900 as base for light, but we'll force dark */
-  --foreground: rgb(231 229 228); /* stone-200 */
-  --card: rgb(28 25 23);
-  --card-foreground: rgb(231 229 228);
-  --popover: rgb(28 25 23);
-  --popover-foreground: rgb(231 229 228);
-  --primary: rgb(214 211 209); /* stone-300 */
-  --primary-foreground: rgb(28 25 23);
-  --secondary: rgb(41 37 36); /* stone-800/900 mix */
-  --secondary-foreground: rgb(231 229 228);
-  --muted: rgb(41 37 36);
-  --muted-foreground: rgb(168 162 158); /* stone-400 */
-  --accent: rgb(41 37 36);
-  --accent-foreground: rgb(231 229 228);
+  --background: rgb(30 41 59); /* slate-800 as base for light, but we'll force dark */
+  --foreground: rgb(226 232 240); /* slate-200 */
+  --card: rgb(30 41 59);
+  --card-foreground: rgb(226 232 240);
+  --popover: rgb(30 41 59);
+  --popover-foreground: rgb(226 232 240);
+  --primary: rgb(203 213 225); /* slate-300 */
+  --primary-foreground: rgb(30 41 59);
+  --secondary: rgb(51 65 85); /* slate-700/800 mix */
+  --secondary-foreground: rgb(226 232 240);
+  --muted: rgb(51 65 85);
+  --muted-foreground: rgb(148 163 184); /* slate-400 */
+  --accent: rgb(51 65 85);
+  --accent-foreground: rgb(226 232 240);
   --destructive: rgb(239 68 68);
   --destructive-foreground: rgb(250 250 249);
   --border: rgb(82 82 82); /* neutral divider */
   --input: rgb(82 82 82);
-  --ring: rgb(120 113 108); /* stone-500 */
-  --chart-1: rgb(214 211 209);
-  --chart-2: rgb(168 162 158);
-  --chart-3: rgb(120 113 108);
-  --chart-4: rgb(87 83 78);
-  --chart-5: rgb(41 37 36);
+  --ring: rgb(148 163 184); /* slate-400 */
+  --chart-1: rgb(203 213 225);
+  --chart-2: rgb(148 163 184);
+  --chart-3: rgb(100 116 139);
+  --chart-4: rgb(71 85 105);
+  --chart-5: rgb(51 65 85);
   --radius: 0px; /* square edges */
-  --sidebar: rgb(41 37 36);
-  --sidebar-foreground: rgb(231 229 228);
-  --sidebar-primary: rgb(214 211 209);
-  --sidebar-primary-foreground: rgb(41 37 36);
-  --sidebar-accent: rgb(28 25 23);
-  --sidebar-accent-foreground: rgb(231 229 228);
+  --sidebar: rgb(51 65 85);
+  --sidebar-foreground: rgb(226 232 240);
+  --sidebar-primary: rgb(203 213 225);
+  --sidebar-primary-foreground: rgb(51 65 85);
+  --sidebar-accent: rgb(30 41 59);
+  --sidebar-accent-foreground: rgb(226 232 240);
   --sidebar-border: rgb(82 82 82);
-  --sidebar-ring: rgb(120 113 108);
+  --sidebar-ring: rgb(148 163 184);
 }
 
 .dark {
-  --background: rgb(28 25 23); /* stone-800/900 */
-  --foreground: rgb(231 229 228); /* stone-200 */
-  --card: rgb(28 25 23);
-  --card-foreground: rgb(231 229 228);
-  --popover: rgb(28 25 23);
-  --popover-foreground: rgb(231 229 228);
-  --primary: rgb(214 211 209);
-  --primary-foreground: rgb(28 25 23);
-  --secondary: rgb(41 37 36);
-  --secondary-foreground: rgb(231 229 228);
-  --muted: rgb(41 37 36);
-  --muted-foreground: rgb(168 162 158);
-  --accent: rgb(41 37 36);
-  --accent-foreground: rgb(231 229 228);
+  --background: rgb(30 41 59); /* slate-800 */
+  --foreground: rgb(226 232 240); /* slate-200 */
+  --card: rgb(30 41 59);
+  --card-foreground: rgb(226 232 240);
+  --popover: rgb(30 41 59);
+  --popover-foreground: rgb(226 232 240);
+  --primary: rgb(203 213 225);
+  --primary-foreground: rgb(30 41 59);
+  --secondary: rgb(51 65 85);
+  --secondary-foreground: rgb(226 232 240);
+  --muted: rgb(51 65 85);
+  --muted-foreground: rgb(148 163 184);
+  --accent: rgb(51 65 85);
+  --accent-foreground: rgb(226 232 240);
   --destructive: rgb(239 68 68);
   --destructive-foreground: rgb(250 250 249);
-  --border: rgb(120 113 108); /* stone-500 for visible borders */
-  --input: rgb(120 113 108);
-  --ring: rgb(168 162 158);
-  --chart-1: rgb(214 211 209);
-  --chart-2: rgb(168 162 158);
-  --chart-3: rgb(120 113 108);
-  --chart-4: rgb(87 83 78);
-  --chart-5: rgb(41 37 36);
-  --sidebar: rgb(41 37 36);
-  --sidebar-foreground: rgb(231 229 228);
-  --sidebar-primary: rgb(214 211 209);
-  --sidebar-primary-foreground: rgb(41 37 36);
-  --sidebar-accent: rgb(28 25 23);
-  --sidebar-accent-foreground: rgb(231 229 228);
-  --sidebar-border: rgb(120 113 108);
-  --sidebar-ring: rgb(168 162 158);
+  --border: rgb(148 163 184); /* slate-400 for visible borders */
+  --input: rgb(148 163 184);
+  --ring: rgb(148 163 184);
+  --chart-1: rgb(203 213 225);
+  --chart-2: rgb(148 163 184);
+  --chart-3: rgb(100 116 139);
+  --chart-4: rgb(71 85 105);
+  --chart-5: rgb(51 65 85);
+  --sidebar: rgb(51 65 85);
+  --sidebar-foreground: rgb(226 232 240);
+  --sidebar-primary: rgb(203 213 225);
+  --sidebar-primary-foreground: rgb(51 65 85);
+  --sidebar-accent: rgb(30 41 59);
+  --sidebar-accent-foreground: rgb(226 232 240);
+  --sidebar-border: rgb(148 163 184);
+  --sidebar-ring: rgb(148 163 184);
 }
 
 @theme inline {
@@ -119,7 +119,7 @@
   }
   *, *::before, *::after { border-radius: 0 !important; }
   body {
-    @apply bg-stone-800 text-stone-200 font-serif;
+    @apply bg-slate-800 text-slate-200 font-serif;
   }
   /* Make all buttons show pointer cursor on hover site-wide (except disabled) */
   button:not(:disabled):hover,

@@ -17,22 +17,22 @@ interface MatchCardProps {
 
 export function MatchCard({ player1, player2, winner, round, matchNumber }: MatchCardProps) {
   return (
-    <Card className="w-64 flex-shrink-0 bg-stone-900 text-stone-200 border-stone-700">
+    <Card className="w-64 flex-shrink-0 bg-slate-900 text-slate-200 border-slate-700">
       <CardContent className="p-4 min-h-[120px] flex flex-col justify-center">
         <div className="flex justify-between items-center mb-2">
-          <Badge variant="outline" className="text-xs border-stone-500 text-stone-300">
+          <Badge variant="outline" className="text-xs border-slate-500 text-slate-300">
             {round}
           </Badge>
-          <span className="text-xs text-stone-400">Match {matchNumber}</span>
+          <span className="text-xs text-slate-400">Match {matchNumber}</span>
         </div>
         
         <div className="space-y-2">
           <div className={`flex justify-between items-center p-2 ${
-            winner === player1.name ? 'bg-emerald-900/30 border-l-4 border-emerald-500' : 'bg-stone-800'
+            winner === player1.name ? 'bg-emerald-900/30 border-l-4 border-emerald-500' : 'bg-slate-800'
           }`}>
             <div className="flex items-center gap-2">
               {player1.seed && (
-                <span className="text-xs bg-stone-700 text-stone-200 px-1">{player1.seed}</span>
+                <span className="text-xs bg-slate-700 text-slate-200 px-1">{player1.seed}</span>
               )}
               <span className={`font-medium ${winner === player1.name ? 'text-emerald-300' : ''}`}>
                 {player1.name}
@@ -44,13 +44,13 @@ export function MatchCard({ player1, player2, winner, round, matchNumber }: Matc
           </div>
           
           <div className={`flex justify-between items-center p-2 ${
-            winner === player2.name ? 'bg-emerald-900/30 border-l-4 border-emerald-500' : 'bg-stone-800'
+            winner === player2.name ? 'bg-emerald-900/30 border-l-4 border-emerald-500' : 'bg-slate-800'
           }`}>
             <div className="flex items-center gap-2">
               {player2.seed && (
-                <span className="text-xs bg-stone-700 text-stone-200 px-1">{player2.seed}</span>
+                <span className="text-xs bg-slate-700 text-slate-200 px-1">{player2.seed}</span>
               )}
-              <span className={`font-medium ${winner === player2.name ? 'text-emerald-300' : ''}`}>
+              <span className={`font-medium ${winner === player2.name ? 'text-emerald-200' : ''}`}>
                 {player2.name}
               </span>
             </div>

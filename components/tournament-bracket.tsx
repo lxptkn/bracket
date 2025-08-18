@@ -57,7 +57,7 @@ export function TournamentBracket({ data }: { data: BracketData }) {
           return (
             <div key={roundName}>
               <h3
-                className="absolute text-lg font-serif tracking-wide text-stone-300 text-center"
+                className="absolute text-lg font-serif tracking-wide text-slate-300 text-center"
                 style={{
                   left: `${columnLeft}px`,
                   top: '0px', // Position title at the top of the bracket
@@ -100,7 +100,7 @@ export function TournamentBracket({ data }: { data: BracketData }) {
             <div key={`r1-line-${index}`}>
               {/* Horizontal line from top match */}
               <div
-                className="absolute bg-stone-300 h-px"
+                className="absolute bg-slate-300 h-px"
                 style={{
                   top: `${topMatchCenterY}px`,
                   left: `${lineLeft}px`,
@@ -109,7 +109,7 @@ export function TournamentBracket({ data }: { data: BracketData }) {
               ></div>
               {/* Horizontal line from bottom match */}
               <div
-                className="absolute bg-stone-300 h-px"
+                className="absolute bg-slate-300 h-px"
                 style={{
                   top: `${bottomMatchCenterY}px`,
                   left: `${lineLeft}px`,
@@ -118,7 +118,7 @@ export function TournamentBracket({ data }: { data: BracketData }) {
               ></div>
               {/* Vertical line connecting pair */}
               <div
-                className="absolute bg-stone-300 w-px"
+                className="absolute bg-slate-300 w-px"
                 style={{
                   top: `${topMatchCenterY}px`,
                   left: `${lineLeft + LINE_SEGMENT_H}px`,
@@ -127,7 +127,7 @@ export function TournamentBracket({ data }: { data: BracketData }) {
               ></div>
               {/* Horizontal line to next round */}
               <div
-                className="absolute bg-stone-300 h-px"
+                className="absolute bg-slate-300 h-px"
                 style={{
                   top: `${nextRoundMatchCenterY}px`,
                   left: `${lineLeft + LINE_SEGMENT_H}px`,
@@ -152,7 +152,7 @@ export function TournamentBracket({ data }: { data: BracketData }) {
             <div key={`qf-line-${index}`}>
               {/* Horizontal line from top match */}
                <div
-                 className="absolute bg-stone-300 h-px"
+                 className="absolute bg-slate-300 h-px"
                 style={{
                   top: `${topMatchCenterY}px`,
                   left: `${lineLeft}px`,
@@ -161,7 +161,7 @@ export function TournamentBracket({ data }: { data: BracketData }) {
               ></div>
               {/* Horizontal line from bottom match */}
                <div
-                 className="absolute bg-stone-300 h-px"
+                 className="absolute bg-slate-300 h-px"
                 style={{
                   top: `${bottomMatchCenterY}px`,
                   left: `${lineLeft}px`,
@@ -170,7 +170,7 @@ export function TournamentBracket({ data }: { data: BracketData }) {
               ></div>
               {/* Vertical line connecting pair */}
                <div
-                 className="absolute bg-stone-300 w-px"
+                 className="absolute bg-slate-300 w-px"
                 style={{
                   top: `${topMatchCenterY}px`,
                   left: `${lineLeft + LINE_SEGMENT_H}px`,
@@ -179,7 +179,7 @@ export function TournamentBracket({ data }: { data: BracketData }) {
               ></div>
               {/* Horizontal line to next round */}
                <div
-                 className="absolute bg-stone-300 h-px"
+                 className="absolute bg-slate-300 h-px"
                 style={{
                   top: `${nextRoundMatchCenterY}px`,
                   left: `${lineLeft + LINE_SEGMENT_H}px`,
@@ -204,7 +204,7 @@ export function TournamentBracket({ data }: { data: BracketData }) {
             <div key={`sf-line-${index}`}>
               {/* Horizontal line from top match */}
                <div
-                 className="absolute bg-stone-300 h-px"
+                 className="absolute bg-slate-300 h-px"
                 style={{
                   top: `${topMatchCenterY}px`,
                   left: `${lineLeft}px`,
@@ -213,7 +213,7 @@ export function TournamentBracket({ data }: { data: BracketData }) {
               ></div>
               {/* Horizontal line from bottom match */}
                <div
-                 className="absolute bg-stone-300 h-px"
+                 className="absolute bg-slate-300 h-px"
                 style={{
                   top: `${bottomMatchCenterY}px`,
                   left: `${lineLeft}px`,
@@ -222,7 +222,7 @@ export function TournamentBracket({ data }: { data: BracketData }) {
               ></div>
               {/* Vertical line connecting pair */}
                <div
-                 className="absolute bg-stone-300 w-px"
+                 className="absolute bg-slate-300 w-px"
                 style={{
                   top: `${topMatchCenterY}px`,
                   left: `${lineLeft + LINE_SEGMENT_H}px`,
@@ -231,7 +231,7 @@ export function TournamentBracket({ data }: { data: BracketData }) {
               ></div>
               {/* Horizontal line to next round */}
                <div
-                 className="absolute bg-stone-300 h-px"
+                 className="absolute bg-slate-300 h-px"
                 style={{
                   top: `${nextRoundMatchCenterY}px`,
                   left: `${lineLeft + LINE_SEGMENT_H}px`,

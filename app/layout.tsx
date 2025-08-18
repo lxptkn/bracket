@@ -5,8 +5,8 @@ import './globals.css'
 import AuthProvider from '@/components/auth-provider'
 
 export const metadata: Metadata = {
-  title: 'v0 App',
-  description: 'Created with v0',
+  title: 'Bracket',
+  description: 'Tournament bracket management system',
   generator: 'v0.dev',
 }
 
@@ -26,7 +26,7 @@ html {
 }
         `}</style>
       </head>
-      <body className={`${garamond.className} dark bg-stone-800 text-stone-200 antialiased`}> 
+      <body className={`${garamond.className} dark bg-slate-800 text-slate-200 antialiased`}> 
         <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
