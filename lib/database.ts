@@ -46,11 +46,17 @@ export const initDatabase = async () => {
     }
     
     console.log('Initializing database...');
+    
     // Test the connection
     await prisma.$connect();
     console.log('Database connection successful');
+    
+    // Note: Tables need to be created manually using 'npx prisma db push'
+    // This can be done locally or through Vercel's build process
+    console.log('Database initialization completed - ensure tables exist with prisma db push');
   } catch (error) {
     console.error('Database initialization failed:', error);
+    throw error;
   }
 };
 
