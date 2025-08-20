@@ -315,20 +315,48 @@ export const moderators = {
     const client = safeGetPrisma();
     if (!client) throw new Error('Database not available');
     
-    const moderator = await client.moderator.findUnique({
-      where: { name: moderatorName }
-    });
-    const season = await client.season.findUnique({
-      where: { name: seasonName }
-    });
+    try {
+      const moderator = await client.moderator.findUnique({
+        where: { name: moderatorName }
+      });
+      
+      if (!moderator) {
+        throw new Error(`Moderator '${moderatorName}' not found in global moderators`);
+      }
+      
+      const season = await client.season.findUnique({
+        where: { name: seasonName }
+      });
 
-    if (moderator && season) {
+      if (!season) {
+        throw new Error(`Season '${seasonName}' not found`);
+      }
+
+      // Check if moderator is already in this season
+      const existingSeasonModerator = await client.seasonModerator.findFirst({
+        where: {
+          seasonId: season.id,
+          moderatorId: moderator.id
+        }
+      });
+
+      if (existingSeasonModerator) {
+        console.log(`Moderator '${moderatorName}' is already in season '${seasonName}'`);
+        return; // Already exists, no need to add again
+      }
+
+      // Add moderator to season
       await client.seasonModerator.create({
         data: {
           seasonId: season.id,
           moderatorId: moderator.id
         }
       });
+      
+      console.log(`Successfully added moderator '${moderatorName}' to season '${seasonName}'`);
+    } catch (error) {
+      console.error(`Error adding moderator '${moderatorName}' to season '${seasonName}':`, error);
+      throw error;
     }
   },
 
@@ -367,6 +395,8 @@ export const brackets = {
       const client = safeGetPrisma();
       if (!client) return {};
       
+      console.log(`Fetching bracket for season: ${seasonName}`);
+      
       const result = await client.bracket.findMany({
         where: { season: { name: seasonName } },
         select: {
@@ -378,6 +408,8 @@ export const brackets = {
         },
         orderBy: [{ round: 'asc' }, { matchNumber: 'asc' }]
       });
+
+      console.log(`Found ${result.length} bracket entries:`, result);
 
       const roundName = (roundNum: number): string => {
         switch (roundNum) {
@@ -393,6 +425,7 @@ export const brackets = {
 
       for (const row of result) {
         const name = roundName(row.round)
+        console.log(`Processing round ${row.round} -> ${name}, match ${row.matchNumber}`);
         if (!bracket[name]) bracket[name] = []
         bracket[name].push({
           matchNumber: row.matchNumber,
@@ -402,6 +435,7 @@ export const brackets = {
         })
       }
 
+      console.log('Final bracket structure:', bracket);
       return bracket
     } catch (error) {
       console.error('Error fetching bracket:', error);
@@ -417,8 +451,11 @@ export const brackets = {
       const client = safeGetPrisma();
       if (!client) return [];
       
+      console.log(`Starting bracket generation for season: ${seasonName}`);
+      
       // Get season participants
       const seasonParticipants = await participants.getForSeason(seasonName);
+      console.log(`Found ${seasonParticipants.length} participants for season:`, seasonParticipants);
       
       if (!Array.isArray(seasonParticipants) || seasonParticipants.length === 0) {
         console.error('No participants found for season:', seasonName);
@@ -434,13 +471,19 @@ export const brackets = {
         return [];
       }
 
+      console.log(`Season found with ID: ${season.id}`);
+
       // Clear existing bracket
-      await client.bracket.deleteMany({
+      console.log('Clearing existing bracket...');
+      const deletedBrackets = await client.bracket.deleteMany({
         where: { seasonId: season.id }
       });
+      console.log(`Deleted ${deletedBrackets.count} existing bracket entries`);
 
       // Generate first round matches
       const matches = [];
+      console.log('Generating first round matches...');
+      
       for (let i = 0; i < seasonParticipants.length; i += 2) {
         if (i + 1 < seasonParticipants.length) {
           matches.push({
@@ -448,6 +491,7 @@ export const brackets = {
             player2: seasonParticipants[i + 1].name,
             winner: ''
           });
+          console.log(`Match ${Math.floor(i/2) + 1}: ${seasonParticipants[i].name} vs ${seasonParticipants[i + 1].name}`);
         } else {
           // Bye for odd participant
           matches.push({
@@ -455,38 +499,54 @@ export const brackets = {
             player2: '',
             winner: seasonParticipants[i].name
           });
+          console.log(`Match ${Math.floor(i/2) + 1}: ${seasonParticipants[i].name} gets a bye`);
         }
       }
 
+      console.log(`Generated ${matches.length} matches`);
+
       // Save to database
+      console.log('Saving matches to database...');
       for (let i = 0; i < matches.length; i++) {
         const match = matches[i];
+        console.log(`Saving match ${i + 1}: ${match.player1} vs ${match.player2}`);
+        
         const player1 = await client.participant.findUnique({
           where: { name: match.player1 }
         });
+        
+        if (!player1) {
+          console.error(`Player 1 not found: ${match.player1}`);
+          continue;
+        }
+        
         const player2 = match.player2 ? await client.participant.findUnique({
           where: { name: match.player2 }
         }) : null;
+        
         const winner = match.winner ? await client.participant.findUnique({
           where: { name: match.winner }
         }) : null;
 
-        await client.bracket.create({
+        const bracketEntry = await client.bracket.create({
           data: {
             seasonId: season.id,
             round: 1,
             matchNumber: i + 1,
-            player1Id: player1?.id || null,
+            player1Id: player1.id,
             player2Id: player2?.id || null,
             winnerId: winner?.id || null
           }
         });
+        
+        console.log(`Created bracket entry with ID: ${bracketEntry.id}`);
       }
 
+      console.log('Bracket generation completed successfully');
       return matches;
     } catch (error) {
       console.error('Error generating bracket:', error);
-      return [];
+      throw error;
     }
   },
 

@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server'
 import { brackets } from '@/lib/db-operations'
 
+// Force dynamic rendering to prevent build-time execution
+export const dynamic = 'force-dynamic'
+
 export const runtime = 'nodejs'
 
 export async function GET(_: Request, context: { params: Promise<{ season: string }> }) {
