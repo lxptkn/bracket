@@ -582,9 +582,16 @@ export const brackets = {
         }
       });
 
-      // If this is Round 1, propagate winners to create subsequent rounds
+      // Propagate winners to create subsequent rounds based on current round
       if (round === 1) {
+        // Round 1 winners create Quarterfinals
         await this.propagateNextRounds(season.id);
+      } else if (round === 2) {
+        // Quarterfinal winners create Semifinals
+        await this.propagateFromQuarterfinals(season.id);
+      } else if (round === 3) {
+        // Semifinal winners create Finals
+        await this.propagateFromSemifinals(season.id);
       }
 
       console.log(`Winner set for ${seasonName} Round ${round} Match ${matchNumber}: ${winnerName || 'none'}`);
@@ -668,53 +675,167 @@ export const brackets = {
 
       // Create Semifinals (Round 3) if we have enough Quarterfinal matches
       if (quarterfinalMatches.length > 1) {
-        const semifinalMatches = [];
-        for (let i = 0; i < quarterfinalMatches.length; i += 2) {
-          if (i + 1 < quarterfinalMatches.length) {
-            semifinalMatches.push({
-              seasonId: seasonId,
-              round: 3,
-              matchNumber: Math.floor(i / 2) + 1,
-              player1Id: null, // Will be set when winners are determined
-              player2Id: null,
-              winnerId: null
-            });
-          } else {
-            // Bye for odd match
-            semifinalMatches.push({
-              seasonId: seasonId,
-              round: 3,
-              matchNumber: Math.floor(i / 2) + 1,
-              player1Id: null,
-              player2Id: null,
-              winnerId: null
-            });
-          }
-        }
-
-        // Save Semifinals
-        for (const match of semifinalMatches) {
-          await client.bracket.create({ data: match });
-        }
-
-        // Create Finals (Round 4) if we have enough Semifinal matches
-        if (semifinalMatches.length > 1) {
-          await client.bracket.create({
-            data: {
-              seasonId: seasonId,
-              round: 4,
-              matchNumber: 1,
-              player1Id: null,
-              player2Id: null,
-              winnerId: null
-            }
-          });
-        }
+        // Semifinals will be created when Quarterfinal winners are set
+        // This is now handled by propagateFromQuarterfinals
       }
 
       console.log('Round propagation completed successfully');
     } catch (error) {
       console.error('Error propagating rounds:', error);
+      throw error;
+    }
+  },
+
+  // Propagate winners from Quarterfinals to Semifinals
+  async propagateFromQuarterfinals(seasonId: number) {
+    try {
+      const client = safeGetPrisma();
+      if (!client) return;
+
+      console.log('Propagating winners from Quarterfinals to Semifinals...');
+
+      // Get all Quarterfinal matches with winners
+      const quarterfinalMatches = await client.bracket.findMany({
+        where: {
+          seasonId: seasonId,
+          round: 2,
+          winnerId: { not: null }
+        },
+        include: {
+          winner: true
+        },
+        orderBy: { matchNumber: 'asc' }
+      });
+
+      if (quarterfinalMatches.length === 0) {
+        console.log('No Quarterfinal winners found, skipping propagation');
+        return;
+      }
+
+      // Clear existing Semifinals
+      await client.bracket.deleteMany({
+        where: {
+          seasonId: seasonId,
+          round: 3
+        }
+      });
+
+      // Create Semifinals (Round 3)
+      const semifinalMatches = [];
+      for (let i = 0; i < quarterfinalMatches.length; i += 2) {
+        if (i + 1 < quarterfinalMatches.length) {
+          const player1 = quarterfinalMatches[i].winner;
+          const player2 = quarterfinalMatches[i + 1].winner;
+          
+          if (player1 && player2) {
+            semifinalMatches.push({
+              seasonId: seasonId,
+              round: 3,
+              matchNumber: Math.floor(i / 2) + 1,
+              player1Id: player1.id,
+              player2Id: player2.id,
+              winnerId: null
+            });
+          }
+        } else {
+          // Bye for odd winner
+          const player1 = quarterfinalMatches[i].winner;
+          if (player1) {
+            semifinalMatches.push({
+              seasonId: seasonId,
+              round: 3,
+              matchNumber: Math.floor(i / 2) + 1,
+              player1Id: player1.id,
+              player2Id: null,
+              winnerId: player1.id // Automatic win
+            });
+          }
+        }
+      }
+
+      // Save Semifinals
+      for (const match of semifinalMatches) {
+        await client.bracket.create({ data: match });
+      }
+
+      // Create Finals (Round 4) if we have enough Semifinal matches
+      if (semifinalMatches.length > 1) {
+        const finalMatch = {
+          seasonId: seasonId,
+          round: 4,
+          matchNumber: 1,
+          player1Id: null,
+          player2Id: null,
+          winnerId: null
+        };
+
+        // If we have exactly 2 semifinals, we can create the final
+        if (semifinalMatches.length === 2) {
+          // We'll populate the final when semifinal winners are determined
+          await client.bracket.create({ data: finalMatch });
+        }
+      }
+
+      console.log('Semifinal propagation completed successfully');
+    } catch (error) {
+      console.error('Error propagating semifinals:', error);
+      throw error;
+    }
+  },
+
+  // Propagate winners from Semifinals to Finals
+  async propagateFromSemifinals(seasonId: number) {
+    try {
+      const client = safeGetPrisma();
+      if (!client) return;
+
+      console.log('Propagating winners from Semifinals to Finals...');
+
+      // Get all Semifinal matches with winners
+      const semifinalMatches = await client.bracket.findMany({
+        where: {
+          seasonId: seasonId,
+          round: 3,
+          winnerId: { not: null }
+        },
+        include: {
+          winner: true
+        },
+        orderBy: { matchNumber: 'asc' }
+      });
+
+      if (semifinalMatches.length === 0) {
+        console.log('No Semifinal winners found, skipping propagation');
+        return;
+      }
+
+      // Clear existing Finals
+      await client.bracket.deleteMany({
+        where: {
+          seasonId: seasonId,
+          round: 4
+        }
+      });
+
+      // Create Finals (Round 4)
+      const finalMatch = {
+        seasonId: seasonId,
+        round: 4,
+        matchNumber: 1,
+        player1Id: null,
+        player2Id: null,
+        winnerId: null
+      };
+
+      // If we have exactly 2 semifinals, we can create the final
+      if (semifinalMatches.length === 2) {
+        // We'll populate the final when semifinal winners are determined
+        await client.bracket.create({ data: finalMatch });
+      }
+
+      console.log('Final propagation completed successfully');
+    } catch (error) {
+      console.error('Error propagating finals:', error);
       throw error;
     }
   }
