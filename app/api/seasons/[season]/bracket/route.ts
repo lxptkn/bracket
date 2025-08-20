@@ -1,13 +1,20 @@
 import { NextResponse } from 'next/server'
-import { getBracket } from '@/lib/data'
+import { brackets } from '@/lib/db-operations'
 
 export const runtime = 'nodejs'
 
 export async function GET(_: Request, context: { params: Promise<{ season: string }> }) {
-  const { season } = await context.params
-  const data = await getBracket(season)
-  if (!data) return NextResponse.json({}, { status: 404 })
-  return NextResponse.json(data)
+  try {
+    const { season } = await context.params
+    const data = await brackets.getForSeason(season)
+    if (!data || Object.keys(data).length === 0) {
+      return NextResponse.json({}, { status: 404 })
+    }
+    return NextResponse.json(data)
+  } catch (error) {
+    console.error('Error fetching bracket:', error)
+    return NextResponse.json({ error: 'Failed to fetch bracket' }, { status: 500 })
+  }
 }
 
 

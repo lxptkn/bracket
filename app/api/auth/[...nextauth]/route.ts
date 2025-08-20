@@ -15,64 +15,92 @@ const authOptions: NextAuthOptions = {
         password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials) {
-        const dev = process.env.NODE_ENV === 'development'
-        const adminEmailRaw = process.env.ADMIN_EMAIL
-        const adminHashRaw = process.env.ADMIN_PASSWORD_HASH
-        const adminPasswordPlain = process.env.ADMIN_PASSWORD
+        // Load environment variables more robustly
+        const adminEmailRaw = process.env.ADMIN_EMAIL?.trim()
+        let adminHashRaw = process.env.ADMIN_PASSWORD_HASH?.trim()
+        
+        // If the hash is truncated, try to reconstruct it from the file
+        if (adminHashRaw && adminHashRaw.length < 60) {
+          try {
+            const fs = require('fs')
+            const envContent = fs.readFileSync('.env.local', 'utf8')
+            const hashMatch = envContent.match(/ADMIN_PASSWORD_HASH=([^\r\n]+)/)
+            if (hashMatch && hashMatch[1]) {
+              const newHash = hashMatch[1].trim()
+              adminHashRaw = newHash
+            }
+          } catch (fileError: any) {
+            // Silently fall back to truncated hash
+          }
+        }
 
         if (!credentials?.email || !credentials?.password) {
-          if (dev) console.log('[auth] missing credentials')
           return null
         }
+        
         if (!adminEmailRaw) {
-          if (dev) console.log('[auth] missing ADMIN_EMAIL env')
           return null
         }
-        if (!adminHashRaw && !adminPasswordPlain) {
-          if (dev) console.log('[auth] missing ADMIN_PASSWORD_HASH (or ADMIN_PASSWORD for dev)')
+        
+        if (!adminHashRaw) {
           return null
         }
 
         const inputEmail = credentials.email.trim().toLowerCase()
         const expectedEmail = adminEmailRaw.trim().toLowerCase()
+        
         if (inputEmail !== expectedEmail) {
-          if (dev) console.log('[auth] email mismatch', { inputEmail })
           return null
         }
 
-        // Dequote and trim hash in case it was wrapped in quotes in .env
-        const adminHash = adminHashRaw
-          ? adminHashRaw.trim().replace(/^"(.*)"$/, '$1').replace(/^'(.*)'$/, '$1')
-          : undefined
+        // Clean up the hash - handle various edge cases
+        let adminHash = adminHashRaw
+        
+        // Remove any surrounding quotes
+        adminHash = adminHash.replace(/^["']|["']$/g, '')
+        
+        // Remove any trailing whitespace or newlines
+        adminHash = adminHash.trim()
+        
+        // Validate hash format
+        if (!adminHash.startsWith('$2')) {
+          return null
+        }
+        
+        if (adminHash.length !== 60) {
+          return null
+        }
 
-        let ok = false
-        if (adminHash) {
-          try {
-            ok = await compare(credentials.password, adminHash)
-          } catch (e) {
-            if (dev) console.log('[auth] bcrypt compare error', e)
-            ok = false
+        try {
+          const passwordMatch = await compare(credentials.password, adminHash)
+          
+          if (!passwordMatch) {
+            return null
           }
-        }
-        if (!ok && dev && adminPasswordPlain) {
-          ok = credentials.password === adminPasswordPlain
-          if (dev) console.log('[auth] using ADMIN_PASSWORD fallback match:', ok)
-        }
-        if (!ok) {
-          if (dev) console.log('[auth] password mismatch')
+          
+          return { 
+            id: 'admin', 
+            name: 'Admin', 
+            email: adminEmailRaw, 
+            role: 'admin' 
+          } as any
+        } catch (error) {
           return null
         }
-        return { id: 'admin', name: 'Admin', email: adminEmailRaw, role: 'admin' } as any
       },
     }),
   ],
   callbacks: {
     async jwt({ token, user }) {
-      if (user) token.role = 'admin'
+      if (user) {
+        (token as any).role = (user as any).role
+      }
       return token
     },
     async session({ session, token }) {
-      if (session.user) (session.user as any).role = (token as any).role
+      if (session.user) {
+        (session.user as any).role = (token as any).role
+      }
       return session
     },
   },
