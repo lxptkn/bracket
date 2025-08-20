@@ -1,10 +1,13 @@
-import { sql } from '@vercel/postgres';
+import { createClient } from '@vercel/postgres';
+
+// Create a database client
+const client = createClient();
 
 // Database schema for tournament site
 export const createTables = async () => {
   try {
     // Create seasons table
-    await sql`
+    await client.sql`
       CREATE TABLE IF NOT EXISTS seasons (
         id SERIAL PRIMARY KEY,
         name VARCHAR(255) UNIQUE NOT NULL,
@@ -15,7 +18,7 @@ export const createTables = async () => {
     `;
 
     // Create participants table
-    await sql`
+    await client.sql`
       CREATE TABLE IF NOT EXISTS participants (
         id SERIAL PRIMARY KEY,
         name VARCHAR(255) NOT NULL,
@@ -25,7 +28,7 @@ export const createTables = async () => {
     `;
 
     // Create season_participants table (many-to-many relationship)
-    await sql`
+    await client.sql`
       CREATE TABLE IF NOT EXISTS season_participants (
         id SERIAL PRIMARY KEY,
         season_id INTEGER REFERENCES seasons(id) ON DELETE CASCADE,
@@ -36,7 +39,7 @@ export const createTables = async () => {
     `;
 
     // Create moderators table
-    await sql`
+    await client.sql`
       CREATE TABLE IF NOT EXISTS moderators (
         id SERIAL PRIMARY KEY,
         name VARCHAR(255) NOT NULL,
@@ -45,7 +48,7 @@ export const createTables = async () => {
     `;
 
     // Create season_moderators table (many-to-many relationship)
-    await sql`
+    await client.sql`
       CREATE TABLE IF NOT EXISTS season_moderators (
         id SERIAL PRIMARY KEY,
         season_id INTEGER REFERENCES seasons(id) ON DELETE CASCADE,
@@ -56,7 +59,7 @@ export const createTables = async () => {
     `;
 
     // Create brackets table
-    await sql`
+    await client.sql`
       CREATE TABLE IF NOT EXISTS brackets (
         id SERIAL PRIMARY KEY,
         season_id INTEGER REFERENCES seasons(id) ON DELETE CASCADE,
@@ -85,3 +88,6 @@ export const initDatabase = async () => {
     console.error('Database initialization failed:', error);
   }
 };
+
+// Export the client for use in other modules
+export { client };

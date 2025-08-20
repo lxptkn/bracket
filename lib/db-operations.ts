@@ -1,11 +1,11 @@
-import { sql } from '@vercel/postgres';
+import { client } from './database';
 
 // Season operations
 export const seasons = {
   // Get all seasons
   async getAll() {
     try {
-      const result = await sql`
+      const result = await client.sql`
         SELECT id, name, month1, month2 
         FROM seasons 
         ORDER BY name DESC
@@ -20,7 +20,7 @@ export const seasons = {
   // Get season metadata
   async getMetadata(seasonName: string) {
     try {
-      const result = await sql`
+      const result = await client.sql`
         SELECT month1, month2 
         FROM seasons 
         WHERE name = ${seasonName}
@@ -34,7 +34,7 @@ export const seasons = {
 
   // Create new season
   async create(seasonName: string) {
-    await sql`
+    await client.sql`
       INSERT INTO seasons (name) 
       VALUES (${seasonName})
     `;
@@ -42,7 +42,7 @@ export const seasons = {
 
   // Update season months
   async updateMonths(seasonName: string, month1: string, month2: string) {
-    await sql`
+    await client.sql`
       UPDATE seasons 
       SET month1 = ${month1}, month2 = ${month2}
       WHERE name = ${seasonName}
@@ -51,7 +51,7 @@ export const seasons = {
 
   // Delete season
   async delete(seasonName: string) {
-    await sql`
+    await client.sql`
       DELETE FROM seasons 
       WHERE name = ${seasonName}
     `;
@@ -63,7 +63,7 @@ export const participants = {
   // Get all participants
   async getAll() {
     try {
-      const result = await sql`
+      const result = await client.sql`
         SELECT id, name, seed 
         FROM participants 
         ORDER BY name
@@ -81,7 +81,7 @@ export const participants = {
   // Get participants for a specific season
   async getForSeason(seasonName: string) {
     try {
-      const result = await sql`
+      const result = await client.sql`
         SELECT p.id, p.name, p.seed
         FROM participants p
         JOIN season_participants sp ON p.id = sp.participant_id
@@ -101,7 +101,7 @@ export const participants = {
 
   // Add participant globally
   async add(name: string, seed?: number) {
-    await sql`
+    await client.sql`
       INSERT INTO participants (name, seed) 
       VALUES (${name}, ${seed || null})
     `;
@@ -110,15 +110,15 @@ export const participants = {
   // Add participant to season
   async addToSeason(participantName: string, seasonName: string) {
     // First get the participant and season IDs
-    const participantResult = await sql`
+    const participantResult = await client.sql`
       SELECT id FROM participants WHERE name = ${participantName}
     `;
-    const seasonResult = await sql`
+    const seasonResult = await client.sql`
       SELECT id FROM seasons WHERE name = ${seasonName}
     `;
 
     if (participantResult.rows[0] && seasonResult.rows[0]) {
-      await sql`
+      await client.sql`
         INSERT INTO season_participants (season_id, participant_id)
         VALUES (${seasonResult.rows[0].id}, ${participantResult.rows[0].id})
         ON CONFLICT DO NOTHING
@@ -128,15 +128,15 @@ export const participants = {
 
   // Remove participant from season
   async removeFromSeason(participantName: string, seasonName: string) {
-    const participantResult = await sql`
+    const participantResult = await client.sql`
       SELECT id FROM participants WHERE name = ${participantName}
     `;
-    const seasonResult = await sql`
+    const seasonResult = await client.sql`
       SELECT id FROM seasons WHERE name = ${seasonName}
     `;
 
     if (participantResult.rows[0] && seasonResult.rows[0]) {
-      await sql`
+      await client.sql`
         DELETE FROM season_participants 
         WHERE season_id = ${seasonResult.rows[0].id} 
         AND participant_id = ${participantResult.rows[0].id}
@@ -150,7 +150,7 @@ export const moderators = {
   // Get all moderators
   async getAll() {
     try {
-      const result = await sql`
+      const result = await client.sql`
         SELECT id, name 
         FROM moderators 
         ORDER BY name
@@ -165,7 +165,7 @@ export const moderators = {
   // Get moderators for a specific season
   async getForSeason(seasonName: string) {
     try {
-      const result = await sql`
+      const result = await client.sql`
         SELECT m.id, m.name
         FROM moderators m
         JOIN season_moderators sm ON m.id = sm.moderator_id
@@ -182,7 +182,7 @@ export const moderators = {
 
   // Add moderator globally
   async add(name: string) {
-    await sql`
+    await client.sql`
       INSERT INTO moderators (name) 
       VALUES (${name})
     `;
@@ -190,15 +190,15 @@ export const moderators = {
 
   // Add moderator to season
   async addToSeason(moderatorName: string, seasonName: string) {
-    const moderatorResult = await sql`
+    const moderatorResult = await client.sql`
       SELECT id FROM moderators WHERE name = ${moderatorName}
     `;
-    const seasonResult = await sql`
+    const seasonResult = await client.sql`
       SELECT id FROM seasons WHERE name = ${seasonName}
     `;
 
     if (moderatorResult.rows[0] && seasonResult.rows[0]) {
-      await sql`
+      await client.sql`
         INSERT INTO season_moderators (season_id, moderator_id)
         VALUES (${seasonResult.rows[0].id}, ${moderatorResult.rows[0].id})
         ON CONFLICT DO NOTHING
@@ -208,15 +208,15 @@ export const moderators = {
 
   // Remove moderator from season
   async removeFromSeason(moderatorName: string, seasonName: string) {
-    const moderatorResult = await sql`
+    const moderatorResult = await client.sql`
       SELECT id FROM moderators WHERE name = ${moderatorName}
     `;
-    const seasonResult = await sql`
+    const seasonResult = await client.sql`
       SELECT id FROM seasons WHERE name = ${seasonName}
     `;
 
     if (moderatorResult.rows[0] && seasonResult.rows[0]) {
-      await sql`
+      await client.sql`
         DELETE FROM season_moderators 
         WHERE season_id = ${seasonResult.rows[0].id} 
         AND moderator_id = ${moderatorResult.rows[0].id}
@@ -230,7 +230,7 @@ export const brackets = {
   // Get bracket for a season
   async getForSeason(seasonName: string) {
     try {
-      const result = await sql`
+      const result = await client.sql`
         SELECT b.round, b.match_number, 
                p1.name as player1_name, p2.name as player2_name, w.name as winner_name
         FROM brackets b
@@ -286,11 +286,11 @@ export const brackets = {
       }
       
       // Clear existing bracket
-      const seasonResult = await sql`
+      const seasonResult = await client.sql`
         SELECT id FROM seasons WHERE name = ${seasonName}
       `;
       if (seasonResult.rows[0]) {
-        await sql`
+        await client.sql`
           DELETE FROM brackets WHERE season_id = ${seasonResult.rows[0].id}
         `;
       }
@@ -318,17 +318,17 @@ export const brackets = {
       if (seasonResult.rows[0]) {
         for (let i = 0; i < matches.length; i++) {
           const match = matches[i];
-          const player1Result = await sql`
+          const player1Result = await client.sql`
             SELECT id FROM participants WHERE name = ${match.player1}
           `;
-          const player2Result = match.player2 ? await sql`
+          const player2Result = match.player2 ? await client.sql`
             SELECT id FROM participants WHERE name = ${match.player2}
           ` : null;
-          const winnerResult = match.winner ? await sql`
+          const winnerResult = match.winner ? await client.sql`
             SELECT id FROM participants WHERE name = ${match.winner}
           ` : null;
 
-          await sql`
+          await client.sql`
             INSERT INTO brackets (season_id, round, match_number, player1_id, player2_id, winner_id)
             VALUES (
               ${seasonResult.rows[0].id}, 
@@ -352,17 +352,17 @@ export const brackets = {
   // Set winner for a specific match
   async setWinner(seasonName: string, round: number, matchNumber: number, winnerName: string) {
     try {
-      const seasonResult = await sql`
+      const seasonResult = await client.sql`
         SELECT id FROM seasons WHERE name = ${seasonName}
       `;
       if (!seasonResult.rows[0]) {
         throw new Error('Season not found');
       }
-      const winnerResult = winnerName ? await sql`
+      const winnerResult = winnerName ? await client.sql`
         SELECT id FROM participants WHERE name = ${winnerName}
       ` : null;
 
-      await sql`
+      await client.sql`
         UPDATE brackets 
         SET winner_id = ${winnerResult?.rows[0]?.id || null}
         WHERE season_id = ${seasonResult.rows[0].id} 
