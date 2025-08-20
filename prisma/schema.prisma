@@ -63,7 +63,7 @@ model Moderator {
 
 model SeasonModerator {
   id          Int        @id @default(autoincrement())
-  seasonId    Int        @map("season_id")
+  seasonId    Int         @map("season_id")
   moderatorId Int        @map("moderator_id")
   createdAt   DateTime   @default(now()) @map("created_at")
 
