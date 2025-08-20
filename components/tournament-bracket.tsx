@@ -37,7 +37,7 @@ export function TournamentBracket({ data }: { data: BracketData }) {
   const roundOrder = ["Round 1", "Quarterfinals", "Semifinals", "Finals"] as const
   const rounds = (roundOrder
     .filter((r) => data && data[r])
-    .map((r) => [r, data[r]])) as [string, Match[]][]
+    .map((r) => [r, Array.isArray((data as any)[r]) ? (data as any)[r] : []])) as [string, Match[]][]
 
   // Calculate total width needed for the container
   const totalWidth = F_LEFT + CARD_WIDTH + 50; // Add some extra padding on the right

@@ -16,10 +16,24 @@ export default function TournamentBracketPage() {
   const [data, setData] = useState<any>({})
 
   useEffect(() => {
-    fetch('/api/seasons').then(r=>r.json()).then((s:string[])=>{ setSeasons(s); setSeason(s[0] ?? null) })
+    fetch('/api/seasons')
+      .then(r=>r.json())
+      .then((s:any)=>{
+        const arr = Array.isArray(s) ? s : []
+        setSeasons(arr)
+        setSeason(arr[0] ?? null)
+      })
+      .catch(()=>{ setSeasons([]); setSeason(null) })
   }, [])
   useEffect(() => {
-    if (season) fetch(`/api/seasons/${season}/bracket`).then(r=>r.json()).then(setData)
+    if (season) {
+      fetch(`/api/seasons/${season}/bracket`)
+        .then(r=> r.ok ? r.json() : {})
+        .then((d:any)=> setData(d && typeof d === 'object' ? d : {}))
+        .catch(()=> setData({}))
+    } else {
+      setData({})
+    }
   }, [season])
 
   return (
@@ -59,7 +73,7 @@ export default function TournamentBracketPage() {
                 <SelectValue placeholder="Select season" />
               </SelectTrigger>
               <SelectContent className="bg-slate-900 border-slate-700 text-slate-200">
-                {seasons.map(s => (
+                {(Array.isArray(seasons) ? seasons : []).map(s => (
                   <SelectItem key={s} value={s}>{s}</SelectItem>
                 ))}
               </SelectContent>

@@ -200,7 +200,7 @@ export const brackets = {
   // Get bracket for a season
   async getForSeason(seasonName: string) {
     const result = await sql`
-      SELECT b.round, b.match_number, b.player1_id, b.player2_id, b.winner_id,
+      SELECT b.round, b.match_number, 
              p1.name as player1_name, p2.name as player2_name, w.name as winner_name
       FROM brackets b
       JOIN seasons s ON b.season_id = s.id
@@ -210,19 +210,31 @@ export const brackets = {
       WHERE s.name = ${seasonName}
       ORDER BY b.round, b.match_number
     `;
-    
-    // Convert to your existing bracket format
-    const bracket: any = {};
-    result.rows.forEach(row => {
-      if (!bracket[row.round]) bracket[row.round] = [];
-      bracket[row.round].push({
-        player1: row.player1_name || '',
-        player2: row.player2_name || '',
-        winner: row.winner_name || ''
-      });
-    });
-    
-    return bracket;
+
+    const roundName = (roundNum: number): string => {
+      switch (roundNum) {
+        case 1: return 'Round 1'
+        case 2: return 'Quarterfinals'
+        case 3: return 'Semifinals'
+        case 4: return 'Finals'
+        default: return `Round ${roundNum}`
+      }
+    }
+
+    const bracket: Record<string, Array<{ matchNumber: number; player1: { name: string }; player2: { name: string }; winner?: string }>> = {}
+
+    for (const row of result.rows) {
+      const name = roundName(Number(row.round))
+      if (!bracket[name]) bracket[name] = []
+      bracket[name].push({
+        matchNumber: Number(row.match_number),
+        player1: { name: row.player1_name || '' },
+        player2: { name: row.player2_name || '' },
+        winner: row.winner_name || undefined,
+      })
+    }
+
+    return bracket
   },
 
   // Generate bracket for a season
