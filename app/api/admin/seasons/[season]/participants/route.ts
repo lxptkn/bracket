@@ -18,15 +18,20 @@ export async function POST(req: Request, context: { params: Promise<{ season: st
     const { season } = await context.params
     const { name, seed } = await req.json()
     if (!name) return NextResponse.json({ error: 'name required' }, { status: 400 })
-    // ensure exists in global table
-    if (typeof seed === 'number') {
+    
+    // Check if participant already exists globally, if not create them
+    try {
       await participants.add(name, seed)
-    } else {
-      await participants.add(name)
+    } catch (error) {
+      // If participant already exists, that's fine - continue
+      console.log('Participant may already exist globally:', error)
     }
+    
+    // Add participant to season
     await participants.addToSeason(name, season)
     return NextResponse.json({ ok: true })
   } catch (error) {
+    console.error('Error adding participant to season:', error)
     return NextResponse.json({ error: 'Failed to add participant' }, { status: 500 })
   }
 }

@@ -181,20 +181,48 @@ export const participants = {
     const client = safeGetPrisma();
     if (!client) throw new Error('Database not available');
     
-    const participant = await client.participant.findUnique({
-      where: { name: participantName }
-    });
-    const season = await client.season.findUnique({
-      where: { name: seasonName }
-    });
+    try {
+      const participant = await client.participant.findUnique({
+        where: { name: participantName }
+      });
+      
+      if (!participant) {
+        throw new Error(`Participant '${participantName}' not found in global participants`);
+      }
+      
+      const season = await client.season.findUnique({
+        where: { name: seasonName }
+      });
 
-    if (participant && season) {
+      if (!season) {
+        throw new Error(`Season '${seasonName}' not found`);
+      }
+
+      // Check if participant is already in this season
+      const existingSeasonParticipant = await client.seasonParticipant.findFirst({
+        where: {
+          seasonId: season.id,
+          participantId: participant.id
+        }
+      });
+
+      if (existingSeasonParticipant) {
+        console.log(`Participant '${participantName}' is already in season '${seasonName}'`);
+        return; // Already exists, no need to add again
+      }
+
+      // Add participant to season
       await client.seasonParticipant.create({
         data: {
           seasonId: season.id,
           participantId: participant.id
         }
       });
+      
+      console.log(`Successfully added participant '${participantName}' to season '${seasonName}'`);
+    } catch (error) {
+      console.error(`Error adding participant '${participantName}' to season '${seasonName}':`, error);
+      throw error;
     }
   },
 
