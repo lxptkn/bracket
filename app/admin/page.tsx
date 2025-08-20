@@ -416,7 +416,7 @@ function MonthSelectors({ seasons, selectedSeason, onChangeSeason, season, month
 
         <div className="flex items-center gap-2">
           <button className="border border-slate-700 bg-slate-900 text-slate-200 px-3 py-1 hover:bg-slate-800 hover:border-slate-600 transition-colors" onClick={async ()=>{
-            await fetch(`/api/admin/seasons/${season}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ month1, month2 }) })
+            await fetch(`/api/admin/seasons`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ season, month1, month2 }) })
             setShowSuccess(true)
             setTimeout(() => setShowSuccess(false), 3000) // Hide after 3 seconds
           }}>Save</button>
