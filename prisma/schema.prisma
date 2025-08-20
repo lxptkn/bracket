@@ -1,0 +1,94 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Season {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  month1    String?
+  month2    String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  participants SeasonParticipant[]
+  moderators   SeasonModerator[]
+  brackets     Bracket[]
+
+  @@map("seasons")
+}
+
+model Participant {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  seed      Int?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  seasonParticipants SeasonParticipant[]
+  player1Matches      Bracket[] @relation("Player1")
+  player2Matches      Bracket[] @relation("Player2")
+  winnerMatches       Bracket[] @relation("Winner")
+
+  @@map("participants")
+}
+
+model SeasonParticipant {
+  id            Int         @id @default(autoincrement())
+  seasonId      Int         @map("season_id")
+  participantId Int         @map("participant_id")
+  createdAt    DateTime    @default(now()) @map("created_at")
+
+  season      Season      @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  participant Participant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+
+  @@unique([seasonId, participantId])
+  @@map("season_participants")
+}
+
+model Moderator {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  createdAt DateTime @default(now()) @map("created_at")
+
+  seasonModerators SeasonModerator[]
+
+  @@map("moderators")
+}
+
+model SeasonModerator {
+  id          Int        @id @default(autoincrement())
+  seasonId    Int        @map("season_id")
+  moderatorId Int        @map("moderator_id")
+  createdAt   DateTime   @default(now()) @map("created_at")
+
+  season    Season    @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  moderator Moderator @relation(fields: [moderatorId], references: [id], onDelete: Cascade)
+
+  @@unique([seasonId, moderatorId])
+  @@map("season_moderators")
+}
+
+model Bracket {
+  id          Int         @id @default(autoincrement())
+  seasonId    Int         @map("season_id")
+  round       Int
+  matchNumber Int         @map("match_number")
+  player1Id   Int?        @map("player1_id")
+  player2Id   Int?        @map("player2_id")
+  winnerId    Int?        @map("winner_id")
+  createdAt   DateTime    @default(now()) @map("created_at")
+
+  season Season      @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  player1 Participant? @relation("Player1", fields: [player1Id], references: [id])
+  player2 Participant? @relation("Player2", fields: [player2Id], references: [id])
+  winner  Participant? @relation("Winner", fields: [winnerId], references: [id])
+
+  @@unique([seasonId, round, matchNumber])
+  @@map("brackets")
+}

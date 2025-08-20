@@ -1,16 +1,17 @@
-import { client } from './database';
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
 
 // Season operations
 export const seasons = {
   // Get all seasons
   async getAll() {
     try {
-      const result = await client.sql`
-        SELECT id, name, month1, month2 
-        FROM seasons 
-        ORDER BY name DESC
-      `;
-      return Array.isArray(result?.rows) ? result.rows.map(row => row.name) : [];
+      const result = await prisma.season.findMany({
+        select: { name: true },
+        orderBy: { name: 'desc' }
+      });
+      return result.map(row => row.name);
     } catch (error) {
       console.error('Error fetching seasons:', error);
       return [];
@@ -20,12 +21,11 @@ export const seasons = {
   // Get season metadata
   async getMetadata(seasonName: string) {
     try {
-      const result = await client.sql`
-        SELECT month1, month2 
-        FROM seasons 
-        WHERE name = ${seasonName}
-      `;
-      return result.rows[0] || { month1: '', month2: '' };
+      const result = await prisma.season.findUnique({
+        where: { name: seasonName },
+        select: { month1: true, month2: true }
+      });
+      return result || { month1: '', month2: '' };
     } catch (error) {
       console.error('Error fetching season metadata:', error);
       return { month1: '', month2: '' };
@@ -34,27 +34,24 @@ export const seasons = {
 
   // Create new season
   async create(seasonName: string) {
-    await client.sql`
-      INSERT INTO seasons (name) 
-      VALUES (${seasonName})
-    `;
+    await prisma.season.create({
+      data: { name: seasonName }
+    });
   },
 
   // Update season months
   async updateMonths(seasonName: string, month1: string, month2: string) {
-    await client.sql`
-      UPDATE seasons 
-      SET month1 = ${month1}, month2 = ${month2}
-      WHERE name = ${seasonName}
-    `;
+    await prisma.season.update({
+      where: { name: seasonName },
+      data: { month1, month2 }
+    });
   },
 
   // Delete season
   async delete(seasonName: string) {
-    await client.sql`
-      DELETE FROM seasons 
-      WHERE name = ${seasonName}
-    `;
+    await prisma.season.delete({
+      where: { name: seasonName }
+    });
   }
 };
 
@@ -63,15 +60,11 @@ export const participants = {
   // Get all participants
   async getAll() {
     try {
-      const result = await client.sql`
-        SELECT id, name, seed 
-        FROM participants 
-        ORDER BY name
-      `;
-      return Array.isArray(result?.rows) ? result.rows.map(row => ({
-        name: row.name,
-        seed: row.seed
-      })) : [];
+      const result = await prisma.participant.findMany({
+        select: { name: true, seed: true },
+        orderBy: { name: 'asc' }
+      });
+      return result;
     } catch (error) {
       console.error('Error fetching participants:', error);
       return [];
@@ -81,18 +74,16 @@ export const participants = {
   // Get participants for a specific season
   async getForSeason(seasonName: string) {
     try {
-      const result = await client.sql`
-        SELECT p.id, p.name, p.seed
-        FROM participants p
-        JOIN season_participants sp ON p.id = sp.participant_id
-        JOIN seasons s ON sp.season_id = s.id
-        WHERE s.name = ${seasonName}
-        ORDER BY p.name
-      `;
-      return Array.isArray(result?.rows) ? result.rows.map(row => ({
-        name: row.name,
-        seed: row.seed
-      })) : [];
+      const result = await prisma.seasonParticipant.findMany({
+        where: { season: { name: seasonName } },
+        select: {
+          participant: {
+            select: { name: true, seed: true }
+          }
+        },
+        orderBy: { participant: { name: 'asc' } }
+      });
+      return result.map(row => row.participant);
     } catch (error) {
       console.error('Error fetching season participants:', error);
       return [];
@@ -101,46 +92,46 @@ export const participants = {
 
   // Add participant globally
   async add(name: string, seed?: number) {
-    await client.sql`
-      INSERT INTO participants (name, seed) 
-      VALUES (${name}, ${seed || null})
-    `;
+    await prisma.participant.create({
+      data: { name, seed }
+    });
   },
 
   // Add participant to season
   async addToSeason(participantName: string, seasonName: string) {
-    // First get the participant and season IDs
-    const participantResult = await client.sql`
-      SELECT id FROM participants WHERE name = ${participantName}
-    `;
-    const seasonResult = await client.sql`
-      SELECT id FROM seasons WHERE name = ${seasonName}
-    `;
+    const participant = await prisma.participant.findUnique({
+      where: { name: participantName }
+    });
+    const season = await prisma.season.findUnique({
+      where: { name: seasonName }
+    });
 
-    if (participantResult.rows[0] && seasonResult.rows[0]) {
-      await client.sql`
-        INSERT INTO season_participants (season_id, participant_id)
-        VALUES (${seasonResult.rows[0].id}, ${participantResult.rows[0].id})
-        ON CONFLICT DO NOTHING
-      `;
+    if (participant && season) {
+      await prisma.seasonParticipant.create({
+        data: {
+          seasonId: season.id,
+          participantId: participant.id
+        }
+      });
     }
   },
 
   // Remove participant from season
   async removeFromSeason(participantName: string, seasonName: string) {
-    const participantResult = await client.sql`
-      SELECT id FROM participants WHERE name = ${participantName}
-    `;
-    const seasonResult = await client.sql`
-      SELECT id FROM seasons WHERE name = ${seasonName}
-    `;
+    const participant = await prisma.participant.findUnique({
+      where: { name: participantName }
+    });
+    const season = await prisma.season.findUnique({
+      where: { name: seasonName }
+    });
 
-    if (participantResult.rows[0] && seasonResult.rows[0]) {
-      await client.sql`
-        DELETE FROM season_participants 
-        WHERE season_id = ${seasonResult.rows[0].id} 
-        AND participant_id = ${participantResult.rows[0].id}
-      `;
+    if (participant && season) {
+      await prisma.seasonParticipant.deleteMany({
+        where: {
+          seasonId: season.id,
+          participantId: participant.id
+        }
+      });
     }
   }
 };
@@ -150,12 +141,11 @@ export const moderators = {
   // Get all moderators
   async getAll() {
     try {
-      const result = await client.sql`
-        SELECT id, name 
-        FROM moderators 
-        ORDER BY name
-      `;
-      return Array.isArray(result?.rows) ? result.rows.map(row => ({ name: row.name })) : [];
+      const result = await prisma.moderator.findMany({
+        select: { name: true },
+        orderBy: { name: 'asc' }
+      });
+      return result;
     } catch (error) {
       console.error('Error fetching moderators:', error);
       return [];
@@ -165,15 +155,16 @@ export const moderators = {
   // Get moderators for a specific season
   async getForSeason(seasonName: string) {
     try {
-      const result = await client.sql`
-        SELECT m.id, m.name
-        FROM moderators m
-        JOIN season_moderators sm ON m.id = sm.moderator_id
-        JOIN seasons s ON sm.season_id = s.id
-        WHERE s.name = ${seasonName}
-        ORDER BY m.name
-      `;
-      return Array.isArray(result?.rows) ? result.rows.map(row => ({ name: row.name })) : [];
+      const result = await prisma.seasonModerator.findMany({
+        where: { season: { name: seasonName } },
+        select: {
+          moderator: {
+            select: { name: true }
+          }
+        },
+        orderBy: { moderator: { name: 'asc' } }
+      });
+      return result.map(row => row.moderator);
     } catch (error) {
       console.error('Error fetching season moderators:', error);
       return [];
@@ -182,45 +173,46 @@ export const moderators = {
 
   // Add moderator globally
   async add(name: string) {
-    await client.sql`
-      INSERT INTO moderators (name) 
-      VALUES (${name})
-    `;
+    await prisma.moderator.create({
+      data: { name }
+    });
   },
 
   // Add moderator to season
   async addToSeason(moderatorName: string, seasonName: string) {
-    const moderatorResult = await client.sql`
-      SELECT id FROM moderators WHERE name = ${moderatorName}
-    `;
-    const seasonResult = await client.sql`
-      SELECT id FROM seasons WHERE name = ${seasonName}
-    `;
+    const moderator = await prisma.moderator.findUnique({
+      where: { name: moderatorName }
+    });
+    const season = await prisma.season.findUnique({
+      where: { name: seasonName }
+    });
 
-    if (moderatorResult.rows[0] && seasonResult.rows[0]) {
-      await client.sql`
-        INSERT INTO season_moderators (season_id, moderator_id)
-        VALUES (${seasonResult.rows[0].id}, ${moderatorResult.rows[0].id})
-        ON CONFLICT DO NOTHING
-      `;
+    if (moderator && season) {
+      await prisma.seasonModerator.create({
+        data: {
+          seasonId: season.id,
+          moderatorId: moderator.id
+        }
+      });
     }
   },
 
   // Remove moderator from season
   async removeFromSeason(moderatorName: string, seasonName: string) {
-    const moderatorResult = await client.sql`
-      SELECT id FROM moderators WHERE name = ${moderatorName}
-    `;
-    const seasonResult = await client.sql`
-      SELECT id FROM seasons WHERE name = ${seasonName}
-    `;
+    const moderator = await prisma.moderator.findUnique({
+      where: { name: moderatorName }
+    });
+    const season = await prisma.season.findUnique({
+      where: { name: seasonName }
+    });
 
-    if (moderatorResult.rows[0] && seasonResult.rows[0]) {
-      await client.sql`
-        DELETE FROM season_moderators 
-        WHERE season_id = ${seasonResult.rows[0].id} 
-        AND moderator_id = ${moderatorResult.rows[0].id}
-      `;
+    if (moderator && season) {
+      await prisma.seasonModerator.deleteMany({
+        where: {
+          seasonId: season.id,
+          moderatorId: moderator.id
+        }
+      });
     }
   }
 };
@@ -230,17 +222,17 @@ export const brackets = {
   // Get bracket for a season
   async getForSeason(seasonName: string) {
     try {
-      const result = await client.sql`
-        SELECT b.round, b.match_number, 
-               p1.name as player1_name, p2.name as player2_name, w.name as winner_name
-        FROM brackets b
-        JOIN seasons s ON b.season_id = s.id
-        LEFT JOIN participants p1 ON b.player1_id = p1.id
-        LEFT JOIN participants p2 ON b.player2_id = p2.id
-        LEFT JOIN participants w ON b.winner_id = w.id
-        WHERE s.name = ${seasonName}
-        ORDER BY b.round, b.match_number
-      `;
+      const result = await prisma.bracket.findMany({
+        where: { season: { name: seasonName } },
+        select: {
+          round: true,
+          matchNumber: true,
+          player1: { select: { name: true } },
+          player2: { select: { name: true } },
+          winner: { select: { name: true } }
+        },
+        orderBy: [{ round: 'asc' }, { matchNumber: 'asc' }]
+      });
 
       const roundName = (roundNum: number): string => {
         switch (roundNum) {
@@ -254,17 +246,15 @@ export const brackets = {
 
       const bracket: Record<string, Array<{ matchNumber: number; player1: { name: string }; player2: { name: string }; winner?: string }>> = {}
 
-      if (Array.isArray(result?.rows)) {
-        for (const row of result.rows) {
-          const name = roundName(Number(row.round))
-          if (!bracket[name]) bracket[name] = []
-          bracket[name].push({
-            matchNumber: Number(row.match_number),
-            player1: { name: row.player1_name || '' },
-            player2: { name: row.player2_name || '' },
-            winner: row.winner_name || undefined,
-          })
-        }
+      for (const row of result) {
+        const name = roundName(row.round)
+        if (!bracket[name]) bracket[name] = []
+        bracket[name].push({
+          matchNumber: row.matchNumber,
+          player1: { name: row.player1?.name || '' },
+          player2: { name: row.player2?.name || '' },
+          winner: row.winner?.name || undefined,
+        })
       }
 
       return bracket
@@ -285,15 +275,19 @@ export const brackets = {
         return [];
       }
       
-      // Clear existing bracket
-      const seasonResult = await client.sql`
-        SELECT id FROM seasons WHERE name = ${seasonName}
-      `;
-      if (seasonResult.rows[0]) {
-        await client.sql`
-          DELETE FROM brackets WHERE season_id = ${seasonResult.rows[0].id}
-        `;
+      const season = await prisma.season.findUnique({
+        where: { name: seasonName }
+      });
+
+      if (!season) {
+        console.error('Season not found:', seasonName);
+        return [];
       }
+
+      // Clear existing bracket
+      await prisma.bracket.deleteMany({
+        where: { seasonId: season.id }
+      });
 
       // Generate first round matches
       const matches = [];
@@ -315,31 +309,28 @@ export const brackets = {
       }
 
       // Save to database
-      if (seasonResult.rows[0]) {
-        for (let i = 0; i < matches.length; i++) {
-          const match = matches[i];
-          const player1Result = await client.sql`
-            SELECT id FROM participants WHERE name = ${match.player1}
-          `;
-          const player2Result = match.player2 ? await client.sql`
-            SELECT id FROM participants WHERE name = ${match.player2}
-          ` : null;
-          const winnerResult = match.winner ? await client.sql`
-            SELECT id FROM participants WHERE name = ${match.winner}
-          ` : null;
+      for (let i = 0; i < matches.length; i++) {
+        const match = matches[i];
+        const player1 = await prisma.participant.findUnique({
+          where: { name: match.player1 }
+        });
+        const player2 = match.player2 ? await prisma.participant.findUnique({
+          where: { name: match.player2 }
+        }) : null;
+        const winner = match.winner ? await prisma.participant.findUnique({
+          where: { name: match.winner }
+        }) : null;
 
-          await client.sql`
-            INSERT INTO brackets (season_id, round, match_number, player1_id, player2_id, winner_id)
-            VALUES (
-              ${seasonResult.rows[0].id}, 
-              1, 
-              ${i + 1}, 
-              ${player1Result.rows[0]?.id || null}, 
-              ${player2Result?.rows[0]?.id || null}, 
-              ${winnerResult?.rows[0]?.id || null}
-            )
-          `;
-        }
+        await prisma.bracket.create({
+          data: {
+            seasonId: season.id,
+            round: 1,
+            matchNumber: i + 1,
+            player1Id: player1?.id || null,
+            player2Id: player2?.id || null,
+            winnerId: winner?.id || null
+          }
+        });
       }
 
       return matches;
@@ -352,23 +343,28 @@ export const brackets = {
   // Set winner for a specific match
   async setWinner(seasonName: string, round: number, matchNumber: number, winnerName: string) {
     try {
-      const seasonResult = await client.sql`
-        SELECT id FROM seasons WHERE name = ${seasonName}
-      `;
-      if (!seasonResult.rows[0]) {
+      const season = await prisma.season.findUnique({
+        where: { name: seasonName }
+      });
+      
+      if (!season) {
         throw new Error('Season not found');
       }
-      const winnerResult = winnerName ? await client.sql`
-        SELECT id FROM participants WHERE name = ${winnerName}
-      ` : null;
 
-      await client.sql`
-        UPDATE brackets 
-        SET winner_id = ${winnerResult?.rows[0]?.id || null}
-        WHERE season_id = ${seasonResult.rows[0].id} 
-        AND round = ${round} 
-        AND match_number = ${matchNumber}
-      `;
+      const winner = winnerName ? await prisma.participant.findUnique({
+        where: { name: winnerName }
+      }) : null;
+
+      await prisma.bracket.updateMany({
+        where: {
+          seasonId: season.id,
+          round: round,
+          matchNumber: matchNumber
+        },
+        data: {
+          winnerId: winner?.id || null
+        }
+      });
     } catch (error) {
       console.error('Error setting winner:', error);
       throw error;
