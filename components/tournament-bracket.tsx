@@ -33,7 +33,10 @@ const getMatchCenterY = (roundIndex: number, matchIndex: number) => {
   return 0;
 };
 
-export function TournamentBracket({ data }: { data: BracketData }) {
+export function TournamentBracket({ data, onSetWinner }: { 
+  data: BracketData
+  onSetWinner?: (round: string, matchNumber: number, winner: string | null) => void
+}) {
   const roundOrder = ["Round 1", "Quarterfinals", "Semifinals", "Finals"] as const
   const rounds = (roundOrder
     .filter((r) => data && data[r])
@@ -77,7 +80,7 @@ export function TournamentBracket({ data }: { data: BracketData }) {
                       left: `${columnLeft}px`,
                     }}
                   >
-                    <MatchCard {...match} round={roundName} />
+                    <MatchCard {...match} round={roundName} onSetWinner={onSetWinner} />
                   </div>
                 );
               })}

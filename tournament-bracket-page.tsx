@@ -87,7 +87,36 @@ export default function TournamentBracketPage() {
 
         {/* Bracket without container card */}
         <div className="w-full flex justify-center">
-          <TournamentBracket data={data} />
+          <TournamentBracket 
+            data={data} 
+            onSetWinner={async (round, matchNumber, winner) => {
+              if (season) {
+                try {
+                  // Convert round name to round number
+                  const roundNumber = round === 'Round 1' ? 1 : 
+                                   round === 'Quarterfinals' ? 2 : 
+                                   round === 'Semifinals' ? 3 : 
+                                   round === 'Finals' ? 4 : 1;
+                  
+                  await fetch(`/api/admin/seasons/${season}/matches`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ round: roundNumber, matchNumber, winner }),
+                  });
+                  
+                  // Refresh bracket data
+                  const updatedData = await fetch(`/api/seasons/${season}/bracket`)
+                    .then(r => r.ok ? r.json() : {})
+                    .then((d: any) => d && typeof d === 'object' ? d : {})
+                    .catch(() => ({}));
+                  
+                  setData(updatedData);
+                } catch (error) {
+                  console.error('Error setting winner:', error);
+                }
+              }
+            }}
+          />
         </div>
 
         <div className="mt-6 max-w-7xl mx-auto">

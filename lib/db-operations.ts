@@ -570,6 +570,7 @@ export const brackets = {
         where: { name: winnerName }
       }) : null;
 
+      // Update the match winner
       await client.bracket.updateMany({
         where: {
           seasonId: season.id,
@@ -580,8 +581,140 @@ export const brackets = {
           winnerId: winner?.id || null
         }
       });
+
+      // If this is Round 1, propagate winners to create subsequent rounds
+      if (round === 1) {
+        await this.propagateNextRounds(season.id);
+      }
+
+      console.log(`Winner set for ${seasonName} Round ${round} Match ${matchNumber}: ${winnerName || 'none'}`);
     } catch (error) {
       console.error('Error setting winner:', error);
+      throw error;
+    }
+  },
+
+  // Propagate winners to create subsequent rounds
+  async propagateNextRounds(seasonId: number) {
+    try {
+      const client = safeGetPrisma();
+      if (!client) return;
+
+      console.log('Propagating winners to create subsequent rounds...');
+
+      // Get all Round 1 matches with winners
+      const round1Matches = await client.bracket.findMany({
+        where: {
+          seasonId: seasonId,
+          round: 1,
+          winnerId: { not: null }
+        },
+        include: {
+          winner: true
+        },
+        orderBy: { matchNumber: 'asc' }
+      });
+
+      if (round1Matches.length === 0) {
+        console.log('No Round 1 winners found, skipping propagation');
+        return;
+      }
+
+      // Clear existing subsequent rounds
+      await client.bracket.deleteMany({
+        where: {
+          seasonId: seasonId,
+          round: { gt: 1 }
+        }
+      });
+
+      // Create Quarterfinals (Round 2)
+      const quarterfinalMatches = [];
+      for (let i = 0; i < round1Matches.length; i += 2) {
+        if (i + 1 < round1Matches.length) {
+          const player1 = round1Matches[i].winner;
+          const player2 = round1Matches[i + 1].winner;
+          
+          if (player1 && player2) {
+            quarterfinalMatches.push({
+              seasonId: seasonId,
+              round: 2,
+              matchNumber: Math.floor(i / 2) + 1,
+              player1Id: player1.id,
+              player2Id: player2.id,
+              winnerId: null
+            });
+          }
+        } else {
+          // Bye for odd winner
+          const player1 = round1Matches[i].winner;
+          if (player1) {
+            quarterfinalMatches.push({
+              seasonId: seasonId,
+              round: 2,
+              matchNumber: Math.floor(i / 2) + 1,
+              player1Id: player1.id,
+              player2Id: null,
+              winnerId: player1.id // Automatic win
+            });
+          }
+        }
+      }
+
+      // Save Quarterfinals
+      for (const match of quarterfinalMatches) {
+        await client.bracket.create({ data: match });
+      }
+
+      // Create Semifinals (Round 3) if we have enough Quarterfinal matches
+      if (quarterfinalMatches.length > 1) {
+        const semifinalMatches = [];
+        for (let i = 0; i < quarterfinalMatches.length; i += 2) {
+          if (i + 1 < quarterfinalMatches.length) {
+            semifinalMatches.push({
+              seasonId: seasonId,
+              round: 3,
+              matchNumber: Math.floor(i / 2) + 1,
+              player1Id: null, // Will be set when winners are determined
+              player2Id: null,
+              winnerId: null
+            });
+          } else {
+            // Bye for odd match
+            semifinalMatches.push({
+              seasonId: seasonId,
+              round: 3,
+              matchNumber: Math.floor(i / 2) + 1,
+              player1Id: null,
+              player2Id: null,
+              winnerId: null
+            });
+          }
+        }
+
+        // Save Semifinals
+        for (const match of semifinalMatches) {
+          await client.bracket.create({ data: match });
+        }
+
+        // Create Finals (Round 4) if we have enough Semifinal matches
+        if (semifinalMatches.length > 1) {
+          await client.bracket.create({
+            data: {
+              seasonId: seasonId,
+              round: 4,
+              matchNumber: 1,
+              player1Id: null,
+              player2Id: null,
+              winnerId: null
+            }
+          });
+        }
+      }
+
+      console.log('Round propagation completed successfully');
+    } catch (error) {
+      console.error('Error propagating rounds:', error);
       throw error;
     }
   }
