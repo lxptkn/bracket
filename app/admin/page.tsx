@@ -322,10 +322,16 @@ function RoundWinnersManager({ season, refreshSignal }: { season: string; refres
   }, [season, refreshSignal])
 
   const setWinner = async (round: string, matchNumber: number, winner: string | null) => {
+    // Convert round name to round number
+    const roundNumber = round === 'Round 1' ? 1 : 
+                       round === 'Quarterfinals' ? 2 : 
+                       round === 'Semifinals' ? 3 : 
+                       round === 'Finals' ? 4 : 1;
+    
     await fetch(`/api/admin/seasons/${season}/matches`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ round, matchNumber, winner }),
+      body: JSON.stringify({ round: roundNumber, matchNumber, winner }),
     })
     await load()
   }
