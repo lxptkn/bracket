@@ -29,15 +29,27 @@ function shouldSkipDatabase() {
   return !process.env.DATABASE_URL || isBuildTime;
 }
 
+// Helper function to safely get Prisma client
+function safeGetPrisma() {
+  try {
+    return getPrisma();
+  } catch (error) {
+    console.warn('Prisma client not available:', error);
+    return null;
+  }
+}
+
 // Season operations
 export const seasons = {
   // Get all seasons
   async getAll() {
     try {
       if (shouldSkipDatabase()) return [];
-      if (!prisma) return [];
       
-      const result = await getPrisma().season.findMany({
+      const client = safeGetPrisma();
+      if (!client) return [];
+      
+      const result = await client.season.findMany({
         select: { name: true },
         orderBy: { name: 'desc' }
       });
@@ -52,9 +64,11 @@ export const seasons = {
   async getMetadata(seasonName: string) {
     try {
       if (shouldSkipDatabase()) return { month1: '', month2: '' };
-      if (!prisma) return { month1: '', month2: '' };
       
-      const result = await getPrisma().season.findUnique({
+      const client = safeGetPrisma();
+      if (!client) return { month1: '', month2: '' };
+      
+      const result = await client.season.findUnique({
         where: { name: seasonName },
         select: { month1: true, month2: true }
       });
@@ -68,9 +82,11 @@ export const seasons = {
   // Create new season
   async create(seasonName: string) {
     if (shouldSkipDatabase()) throw new Error('Database not available during build');
-    if (!prisma) throw new Error('Database not available');
     
-    await getPrisma().season.create({
+    const client = safeGetPrisma();
+    if (!client) throw new Error('Database not available');
+    
+    await client.season.create({
       data: { name: seasonName }
     });
   },
@@ -78,9 +94,11 @@ export const seasons = {
   // Update season months
   async updateMonths(seasonName: string, month1: string, month2: string) {
     if (shouldSkipDatabase()) throw new Error('Database not available during build');
-    if (!prisma) throw new Error('Database not available');
     
-    await getPrisma().season.update({
+    const client = safeGetPrisma();
+    if (!client) throw new Error('Database not available');
+    
+    await client.season.update({
       where: { name: seasonName },
       data: { month1, month2 }
     });
@@ -89,9 +107,11 @@ export const seasons = {
   // Delete season
   async delete(seasonName: string) {
     if (shouldSkipDatabase()) throw new Error('Database not available during build');
-    if (!prisma) throw new Error('Database not available');
     
-    await getPrisma().season.delete({
+    const client = safeGetPrisma();
+    if (!client) throw new Error('Database not available');
+    
+    await client.season.delete({
       where: { name: seasonName }
     });
   }
@@ -103,9 +123,11 @@ export const participants = {
   async getAll() {
     try {
       if (shouldSkipDatabase()) return [];
-      if (!prisma) return [];
       
-      const result = await getPrisma().participant.findMany({
+      const client = safeGetPrisma();
+      if (!client) return [];
+      
+      const result = await client.participant.findMany({
         select: { name: true, seed: true },
         orderBy: { name: 'asc' }
       });
@@ -120,9 +142,11 @@ export const participants = {
   async getForSeason(seasonName: string) {
     try {
       if (shouldSkipDatabase()) return [];
-      if (!prisma) return [];
       
-      const result = await getPrisma().seasonParticipant.findMany({
+      const client = safeGetPrisma();
+      if (!client) return [];
+      
+      const result = await client.seasonParticipant.findMany({
         where: { season: { name: seasonName } },
         select: {
           participant: {
@@ -141,9 +165,11 @@ export const participants = {
   // Add participant globally
   async add(name: string, seed?: number) {
     if (shouldSkipDatabase()) throw new Error('Database not available during build');
-    if (!prisma) throw new Error('Database not available');
     
-    await getPrisma().participant.create({
+    const client = safeGetPrisma();
+    if (!client) throw new Error('Database not available');
+    
+    await client.participant.create({
       data: { name, seed }
     });
   },
@@ -151,17 +177,19 @@ export const participants = {
   // Add participant to season
   async addToSeason(participantName: string, seasonName: string) {
     if (shouldSkipDatabase()) throw new Error('Database not available during build');
-    if (!prisma) throw new Error('Database not available');
     
-    const participant = await getPrisma().participant.findUnique({
+    const client = safeGetPrisma();
+    if (!client) throw new Error('Database not available');
+    
+    const participant = await client.participant.findUnique({
       where: { name: participantName }
     });
-    const season = await getPrisma().season.findUnique({
+    const season = await client.season.findUnique({
       where: { name: seasonName }
     });
 
     if (participant && season) {
-      await getPrisma().seasonParticipant.create({
+      await client.seasonParticipant.create({
         data: {
           seasonId: season.id,
           participantId: participant.id
@@ -173,17 +201,19 @@ export const participants = {
   // Remove participant from season
   async removeFromSeason(participantName: string, seasonName: string) {
     if (shouldSkipDatabase()) throw new Error('Database not available during build');
-    if (!prisma) throw new Error('Database not available');
     
-    const participant = await getPrisma().participant.findUnique({
+    const client = safeGetPrisma();
+    if (!client) throw new Error('Database not available');
+    
+    const participant = await client.participant.findUnique({
       where: { name: participantName }
     });
-    const season = await getPrisma().season.findUnique({
+    const season = await client.season.findUnique({
       where: { name: seasonName }
     });
 
     if (participant && season) {
-      await getPrisma().seasonParticipant.deleteMany({
+      await client.seasonParticipant.deleteMany({
         where: {
           seasonId: season.id,
           participantId: participant.id
@@ -199,9 +229,11 @@ export const moderators = {
   async getAll() {
     try {
       if (shouldSkipDatabase()) return [];
-      if (!prisma) return [];
       
-      const result = await getPrisma().moderator.findMany({
+      const client = safeGetPrisma();
+      if (!client) return [];
+      
+      const result = await client.moderator.findMany({
         select: { name: true },
         orderBy: { name: 'asc' }
       });
@@ -216,9 +248,11 @@ export const moderators = {
   async getForSeason(seasonName: string) {
     try {
       if (shouldSkipDatabase()) return [];
-      if (!prisma) return [];
       
-      const result = await getPrisma().seasonModerator.findMany({
+      const client = safeGetPrisma();
+      if (!client) return [];
+      
+      const result = await client.seasonModerator.findMany({
         where: { season: { name: seasonName } },
         select: {
           moderator: {
@@ -237,9 +271,11 @@ export const moderators = {
   // Add moderator globally
   async add(name: string) {
     if (shouldSkipDatabase()) throw new Error('Database not available during build');
-    if (!prisma) throw new Error('Database not available');
     
-    await getPrisma().moderator.create({
+    const client = safeGetPrisma();
+    if (!client) throw new Error('Database not available');
+    
+    await client.moderator.create({
       data: { name }
     });
   },
@@ -247,17 +283,19 @@ export const moderators = {
   // Add moderator to season
   async addToSeason(moderatorName: string, seasonName: string) {
     if (shouldSkipDatabase()) throw new Error('Database not available during build');
-    if (!prisma) throw new Error('Database not available');
     
-    const moderator = await getPrisma().moderator.findUnique({
+    const client = safeGetPrisma();
+    if (!client) throw new Error('Database not available');
+    
+    const moderator = await client.moderator.findUnique({
       where: { name: moderatorName }
     });
-    const season = await getPrisma().season.findUnique({
+    const season = await client.season.findUnique({
       where: { name: seasonName }
     });
 
     if (moderator && season) {
-      await getPrisma().seasonModerator.create({
+      await client.seasonModerator.create({
         data: {
           seasonId: season.id,
           moderatorId: moderator.id
@@ -269,17 +307,19 @@ export const moderators = {
   // Remove moderator from season
   async removeFromSeason(moderatorName: string, seasonName: string) {
     if (shouldSkipDatabase()) throw new Error('Database not available during build');
-    if (!prisma) throw new Error('Database not available');
     
-    const moderator = await getPrisma().moderator.findUnique({
+    const client = safeGetPrisma();
+    if (!client) throw new Error('Database not available');
+    
+    const moderator = await client.moderator.findUnique({
       where: { name: moderatorName }
     });
-    const season = await getPrisma().season.findUnique({
+    const season = await client.season.findUnique({
       where: { name: seasonName }
     });
 
     if (moderator && season) {
-      await getPrisma().seasonModerator.deleteMany({
+      await client.seasonModerator.deleteMany({
         where: {
           seasonId: season.id,
           moderatorId: moderator.id
@@ -295,9 +335,11 @@ export const brackets = {
   async getForSeason(seasonName: string) {
     try {
       if (shouldSkipDatabase()) return {};
-      if (!prisma) return {};
       
-      const result = await getPrisma().bracket.findMany({
+      const client = safeGetPrisma();
+      if (!client) return {};
+      
+      const result = await client.bracket.findMany({
         where: { season: { name: seasonName } },
         select: {
           round: true,
@@ -343,7 +385,9 @@ export const brackets = {
   async generateForSeason(seasonName: string) {
     try {
       if (shouldSkipDatabase()) return [];
-      if (!prisma) return [];
+      
+      const client = safeGetPrisma();
+      if (!client) return [];
       
       // Get season participants
       const seasonParticipants = await participants.getForSeason(seasonName);
@@ -353,7 +397,7 @@ export const brackets = {
         return [];
       }
       
-      const season = await getPrisma().season.findUnique({
+      const season = await client.season.findUnique({
         where: { name: seasonName }
       });
 
@@ -363,7 +407,7 @@ export const brackets = {
       }
 
       // Clear existing bracket
-      await getPrisma().bracket.deleteMany({
+      await client.bracket.deleteMany({
         where: { seasonId: season.id }
       });
 
@@ -389,17 +433,17 @@ export const brackets = {
       // Save to database
       for (let i = 0; i < matches.length; i++) {
         const match = matches[i];
-        const player1 = await getPrisma().participant.findUnique({
+        const player1 = await client.participant.findUnique({
           where: { name: match.player1 }
         });
-        const player2 = match.player2 ? await getPrisma().participant.findUnique({
+        const player2 = match.player2 ? await client.participant.findUnique({
           where: { name: match.player2 }
         }) : null;
-        const winner = match.winner ? await getPrisma().participant.findUnique({
+        const winner = match.winner ? await client.participant.findUnique({
           where: { name: match.winner }
         }) : null;
 
-        await getPrisma().bracket.create({
+        await client.bracket.create({
           data: {
             seasonId: season.id,
             round: 1,
@@ -422,9 +466,11 @@ export const brackets = {
   async setWinner(seasonName: string, round: number, matchNumber: number, winnerName: string) {
     try {
       if (shouldSkipDatabase()) throw new Error('Database not available during build');
-      if (!prisma) throw new Error('Database not available');
       
-      const season = await getPrisma().season.findUnique({
+      const client = safeGetPrisma();
+      if (!client) throw new Error('Database not available');
+      
+      const season = await client.season.findUnique({
         where: { name: seasonName }
       });
       
@@ -432,11 +478,11 @@ export const brackets = {
         throw new Error('Season not found');
       }
 
-      const winner = winnerName ? await getPrisma().participant.findUnique({
+      const winner = winnerName ? await client.participant.findUnique({
         where: { name: winnerName }
       }) : null;
 
-      await getPrisma().bracket.updateMany({
+      await client.bracket.updateMany({
         where: {
           seasonId: season.id,
           round: round,
