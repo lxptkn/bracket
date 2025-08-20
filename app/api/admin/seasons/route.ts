@@ -1,10 +1,17 @@
 import { NextResponse } from 'next/server'
 import { seasons } from '@/lib/db-operations'
 
-export const runtime = 'nodejs'
+// Force dynamic rendering to prevent build-time execution
+export const dynamic = 'force-dynamic'
 
 export async function POST(req: Request) {
   try {
+    // Check if we're in a build context or don't have database access
+    if (!process.env.DATABASE_URL || process.env.NEXT_PHASE === 'phase-production-build') {
+      console.log('Build time or no database detected, skipping season creation');
+      return NextResponse.json({ error: 'Database not available during build' }, { status: 503 });
+    }
+
     const { season } = await req.json()
     if (!season || typeof season !== 'string') {
       return NextResponse.json({ error: 'season required' }, { status: 400 })
@@ -19,6 +26,12 @@ export async function POST(req: Request) {
 
 export async function DELETE(req: Request) {
   try {
+    // Check if we're in a build context or don't have database access
+    if (!process.env.DATABASE_URL || process.env.NEXT_PHASE === 'phase-production-build') {
+      console.log('Build time or no database detected, skipping season deletion');
+      return NextResponse.json({ error: 'Database not available during build' }, { status: 503 });
+    }
+
     const { season } = await req.json()
     if (!season || typeof season !== 'string') {
       return NextResponse.json({ error: 'season required' }, { status: 400 })

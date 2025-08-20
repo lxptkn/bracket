@@ -19,11 +19,22 @@ function getPrisma() {
   return prisma;
 }
 
+// Helper function to check if we should skip database operations
+function shouldSkipDatabase() {
+  // Check for build-time indicators
+  const isBuildTime = process.env.NEXT_PHASE === 'phase-production-build' || 
+                      process.env.NODE_ENV === 'production' && !process.env.DATABASE_URL ||
+                      process.env.VERCEL_ENV === 'production' && !process.env.DATABASE_URL;
+  
+  return !process.env.DATABASE_URL || isBuildTime;
+}
+
 // Season operations
 export const seasons = {
   // Get all seasons
   async getAll() {
     try {
+      if (shouldSkipDatabase()) return [];
       if (!prisma) return [];
       
       const result = await getPrisma().season.findMany({
@@ -40,6 +51,7 @@ export const seasons = {
   // Get season metadata
   async getMetadata(seasonName: string) {
     try {
+      if (shouldSkipDatabase()) return { month1: '', month2: '' };
       if (!prisma) return { month1: '', month2: '' };
       
       const result = await getPrisma().season.findUnique({
@@ -55,6 +67,7 @@ export const seasons = {
 
   // Create new season
   async create(seasonName: string) {
+    if (shouldSkipDatabase()) throw new Error('Database not available during build');
     if (!prisma) throw new Error('Database not available');
     
     await getPrisma().season.create({
@@ -64,6 +77,7 @@ export const seasons = {
 
   // Update season months
   async updateMonths(seasonName: string, month1: string, month2: string) {
+    if (shouldSkipDatabase()) throw new Error('Database not available during build');
     if (!prisma) throw new Error('Database not available');
     
     await getPrisma().season.update({
@@ -74,6 +88,7 @@ export const seasons = {
 
   // Delete season
   async delete(seasonName: string) {
+    if (shouldSkipDatabase()) throw new Error('Database not available during build');
     if (!prisma) throw new Error('Database not available');
     
     await getPrisma().season.delete({
@@ -87,6 +102,7 @@ export const participants = {
   // Get all participants
   async getAll() {
     try {
+      if (shouldSkipDatabase()) return [];
       if (!prisma) return [];
       
       const result = await getPrisma().participant.findMany({
@@ -103,6 +119,7 @@ export const participants = {
   // Get participants for a specific season
   async getForSeason(seasonName: string) {
     try {
+      if (shouldSkipDatabase()) return [];
       if (!prisma) return [];
       
       const result = await getPrisma().seasonParticipant.findMany({
@@ -123,6 +140,7 @@ export const participants = {
 
   // Add participant globally
   async add(name: string, seed?: number) {
+    if (shouldSkipDatabase()) throw new Error('Database not available during build');
     if (!prisma) throw new Error('Database not available');
     
     await getPrisma().participant.create({
@@ -132,6 +150,7 @@ export const participants = {
 
   // Add participant to season
   async addToSeason(participantName: string, seasonName: string) {
+    if (shouldSkipDatabase()) throw new Error('Database not available during build');
     if (!prisma) throw new Error('Database not available');
     
     const participant = await getPrisma().participant.findUnique({
@@ -153,6 +172,7 @@ export const participants = {
 
   // Remove participant from season
   async removeFromSeason(participantName: string, seasonName: string) {
+    if (shouldSkipDatabase()) throw new Error('Database not available during build');
     if (!prisma) throw new Error('Database not available');
     
     const participant = await getPrisma().participant.findUnique({
@@ -178,6 +198,7 @@ export const moderators = {
   // Get all moderators
   async getAll() {
     try {
+      if (shouldSkipDatabase()) return [];
       if (!prisma) return [];
       
       const result = await getPrisma().moderator.findMany({
@@ -194,6 +215,7 @@ export const moderators = {
   // Get moderators for a specific season
   async getForSeason(seasonName: string) {
     try {
+      if (shouldSkipDatabase()) return [];
       if (!prisma) return [];
       
       const result = await getPrisma().seasonModerator.findMany({
@@ -214,6 +236,7 @@ export const moderators = {
 
   // Add moderator globally
   async add(name: string) {
+    if (shouldSkipDatabase()) throw new Error('Database not available during build');
     if (!prisma) throw new Error('Database not available');
     
     await getPrisma().moderator.create({
@@ -223,6 +246,7 @@ export const moderators = {
 
   // Add moderator to season
   async addToSeason(moderatorName: string, seasonName: string) {
+    if (shouldSkipDatabase()) throw new Error('Database not available during build');
     if (!prisma) throw new Error('Database not available');
     
     const moderator = await getPrisma().moderator.findUnique({
@@ -244,6 +268,7 @@ export const moderators = {
 
   // Remove moderator from season
   async removeFromSeason(moderatorName: string, seasonName: string) {
+    if (shouldSkipDatabase()) throw new Error('Database not available during build');
     if (!prisma) throw new Error('Database not available');
     
     const moderator = await getPrisma().moderator.findUnique({
@@ -269,6 +294,7 @@ export const brackets = {
   // Get bracket for a season
   async getForSeason(seasonName: string) {
     try {
+      if (shouldSkipDatabase()) return {};
       if (!prisma) return {};
       
       const result = await getPrisma().bracket.findMany({
@@ -316,6 +342,7 @@ export const brackets = {
   // Generate bracket for a season
   async generateForSeason(seasonName: string) {
     try {
+      if (shouldSkipDatabase()) return [];
       if (!prisma) return [];
       
       // Get season participants
@@ -394,6 +421,7 @@ export const brackets = {
   // Set winner for a specific match
   async setWinner(seasonName: string, round: number, matchNumber: number, winnerName: string) {
     try {
+      if (shouldSkipDatabase()) throw new Error('Database not available during build');
       if (!prisma) throw new Error('Database not available');
       
       const season = await getPrisma().season.findUnique({

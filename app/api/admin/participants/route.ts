@@ -1,10 +1,17 @@
 import { NextResponse } from 'next/server'
 import { participants } from '@/lib/db-operations'
 
-export const runtime = 'nodejs'
+// Force dynamic rendering to prevent build-time execution
+export const dynamic = 'force-dynamic'
 
 export async function GET() {
   try {
+    // Check if we're in a build context or don't have database access
+    if (!process.env.DATABASE_URL || process.env.NEXT_PHASE === 'phase-production-build') {
+      console.log('Build time or no database detected, returning empty participants data');
+      return NextResponse.json([]);
+    }
+
     const list = await participants.getAll()
     // Ensure we always return an array and it's sorted
     const sortedList = Array.isArray(list) ? list.sort((a, b) => a.name.localeCompare(b.name)) : []

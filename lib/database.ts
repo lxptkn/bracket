@@ -4,11 +4,14 @@ import { PrismaClient } from '@prisma/client';
 let prisma: PrismaClient | null = null;
 
 try {
-  if (process.env.DATABASE_URL) {
+  // Check if we're in a build context or don't have database access
+  if (process.env.DATABASE_URL && 
+      process.env.NEXT_PHASE !== 'phase-production-build' &&
+      process.env.VERCEL_ENV !== 'production') {
     prisma = new PrismaClient();
     console.log('Database module loaded with Prisma');
   } else {
-    console.log('Database module loaded - no DATABASE_URL found, skipping database operations locally');
+    console.log('Database module loaded - no DATABASE_URL found or build time detected, skipping database operations');
   }
 } catch (error) {
   console.warn('Prisma client not available locally, skipping database operations');
@@ -18,7 +21,7 @@ try {
 export const createTables = async () => {
   try {
     if (!prisma) {
-      console.log('Skipping table creation - database not available locally');
+      console.log('Skipping table creation - database not available locally or during build');
       return;
     }
     
@@ -38,7 +41,7 @@ export const createTables = async () => {
 export const initDatabase = async () => {
   try {
     if (!prisma) {
-      console.log('Skipping database initialization - database not available locally');
+      console.log('Skipping database initialization - database not available locally or during build');
       return;
     }
     
