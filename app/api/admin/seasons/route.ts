@@ -1,24 +1,34 @@
 import { NextResponse } from 'next/server'
-import { addSeason, removeSeason } from '@/lib/data'
+import { seasons } from '@/lib/db-operations'
 
 export const runtime = 'nodejs'
 
 export async function POST(req: Request) {
-  const { season } = await req.json()
-  if (!season || typeof season !== 'string') {
-    return NextResponse.json({ error: 'season required' }, { status: 400 })
+  try {
+    const { season } = await req.json()
+    if (!season || typeof season !== 'string') {
+      return NextResponse.json({ error: 'season required' }, { status: 400 })
+    }
+    await seasons.create(season)
+    return NextResponse.json({ ok: true })
+  } catch (error) {
+    console.error('Error creating season:', error)
+    return NextResponse.json({ error: 'Failed to create season' }, { status: 500 })
   }
-  await addSeason(season)
-  return NextResponse.json({ ok: true })
 }
 
 export async function DELETE(req: Request) {
-  const { season } = await req.json()
-  if (!season || typeof season !== 'string') {
-    return NextResponse.json({ error: 'season required' }, { status: 400 })
+  try {
+    const { season } = await req.json()
+    if (!season || typeof season !== 'string') {
+      return NextResponse.json({ error: 'season required' }, { status: 400 })
+    }
+    await seasons.delete(season)
+    return NextResponse.json({ ok: true })
+  } catch (error) {
+    console.error('Error deleting season:', error)
+    return NextResponse.json({ error: 'Failed to delete season' }, { status: 500 })
   }
-  await removeSeason(season)
-  return NextResponse.json({ ok: true })
 }
 
 
