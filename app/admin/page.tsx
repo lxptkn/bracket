@@ -20,16 +20,38 @@ export default function AdminPage() {
   const [newParticipantSeed, setNewParticipantSeed] = useState('')
 
   useEffect(() => {
-    fetch('/api/seasons').then((r) => r.json()).then((s) => { setSeasons(s); setSelectedSeason(s[0] ?? '') })
-    fetch('/api/admin/participants').then((r)=>r.json()).then((list)=>setGlobalParticipants(list))
-    fetch('/api/admin/moderators').then((r)=>r.json()).then(setGlobalModerators)
+    fetch('/api/seasons')
+      .then((r) => r.json())
+      .then((s) => {
+        const arr = Array.isArray(s) ? s : []
+        setSeasons(arr)
+        setSelectedSeason(arr[0] ?? '')
+      })
+      .catch(() => { setSeasons([]) })
+    fetch('/api/admin/participants')
+      .then((r)=>r.json())
+      .then((list)=> setGlobalParticipants(Array.isArray(list) ? list : []))
+      .catch(()=> setGlobalParticipants([]))
+    fetch('/api/admin/moderators')
+      .then((r)=>r.json())
+      .then((list)=> setGlobalModerators(Array.isArray(list) ? list : []))
+      .catch(()=> setGlobalModerators([]))
   }, [])
 
   useEffect(() => {
     if (!selectedSeason) return
-    fetch(`/api/admin/seasons/${selectedSeason}/participants`).then((r)=>r.json()).then(setParticipants)
-    fetch(`/api/seasons/${selectedSeason}`).then(r=>r.json()).then((meta)=>{ setMonth1(meta.month1 ?? ''); setMonth2(meta.month2 ?? '') })
-    fetch(`/api/admin/seasons/${selectedSeason}/moderators`).then(r=>r.json()).then(setSeasonModerators)
+    fetch(`/api/admin/seasons/${selectedSeason}/participants`)
+      .then((r)=>r.json())
+      .then((list)=> setParticipants(Array.isArray(list) ? list : []))
+      .catch(()=> setParticipants([]))
+    fetch(`/api/seasons/${selectedSeason}`)
+      .then(r=>r.json())
+      .then((meta)=>{ setMonth1(meta?.month1 ?? ''); setMonth2(meta?.month2 ?? '') })
+      .catch(()=> { setMonth1(''); setMonth2('') })
+    fetch(`/api/admin/seasons/${selectedSeason}/moderators`)
+      .then(r=>r.json())
+      .then((list)=> setSeasonModerators(Array.isArray(list) ? list : []))
+      .catch(()=> setSeasonModerators([]))
   }, [selectedSeason])
 
   const availableToAdd = useMemo(() => {

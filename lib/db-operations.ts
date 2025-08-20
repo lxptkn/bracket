@@ -228,7 +228,7 @@ export const brackets = {
   // Generate bracket for a season
   async generateForSeason(seasonName: string) {
     // Get season participants
-    const participants = await this.participants.getForSeason(seasonName);
+    const seasonParticipants = await participants.getForSeason(seasonName);
     
     // Clear existing bracket
     const seasonResult = await sql`
@@ -242,19 +242,19 @@ export const brackets = {
 
     // Generate first round matches
     const matches = [];
-    for (let i = 0; i < participants.length; i += 2) {
-      if (i + 1 < participants.length) {
+    for (let i = 0; i < seasonParticipants.length; i += 2) {
+      if (i + 1 < seasonParticipants.length) {
         matches.push({
-          player1: participants[i].name,
-          player2: participants[i + 1].name,
+          player1: seasonParticipants[i].name,
+          player2: seasonParticipants[i + 1].name,
           winner: ''
         });
       } else {
         // Bye for odd participant
         matches.push({
-          player1: participants[i].name,
+          player1: seasonParticipants[i].name,
           player2: '',
-          winner: participants[i].name
+          winner: seasonParticipants[i].name
         });
       }
     }
@@ -288,5 +288,26 @@ export const brackets = {
     }
 
     return matches;
+  },
+
+  // Set winner for a specific match
+  async setWinner(seasonName: string, round: number, matchNumber: number, winnerName: string) {
+    const seasonResult = await sql`
+      SELECT id FROM seasons WHERE name = ${seasonName}
+    `;
+    if (!seasonResult.rows[0]) {
+      throw new Error('Season not found');
+    }
+    const winnerResult = winnerName ? await sql`
+      SELECT id FROM participants WHERE name = ${winnerName}
+    ` : null;
+
+    await sql`
+      UPDATE brackets 
+      SET winner_id = ${winnerResult?.rows[0]?.id || null}
+      WHERE season_id = ${seasonResult.rows[0].id} 
+      AND round = ${round} 
+      AND match_number = ${matchNumber}
+    `;
   }
 };
