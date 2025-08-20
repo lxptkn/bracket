@@ -551,7 +551,7 @@ export const brackets = {
   },
 
   // Set winner for a specific match
-  async setWinner(seasonName: string, round: number, matchNumber: number, winnerName: string) {
+  async setWinner(seasonName: string, round: number, matchNumber: number, winnerName: string | null) {
     try {
       if (shouldSkipDatabase()) throw new Error('Database not available during build');
       
@@ -582,16 +582,19 @@ export const brackets = {
         }
       });
 
-      // Propagate winners to create subsequent rounds based on current round
-      if (round === 1) {
-        // Round 1 winners create Quarterfinals
-        await this.propagateNextRounds(season.id);
-      } else if (round === 2) {
-        // Quarterfinal winners create Semifinals
-        await this.propagateFromQuarterfinals(season.id);
-      } else if (round === 3) {
-        // Semifinal winners create Finals
-        await this.propagateFromSemifinals(season.id);
+      // Only propagate if we're setting a winner (not clearing one)
+      if (winnerName) {
+        // Propagate winners to create subsequent rounds based on current round
+        if (round === 1) {
+          // Round 1 winners create Quarterfinals
+          await this.propagateNextRounds(season.id);
+        } else if (round === 2) {
+          // Quarterfinal winners create Semifinals
+          await this.propagateFromQuarterfinals(season.id);
+        } else if (round === 3) {
+          // Semifinal winners create Finals
+          await this.propagateFromSemifinals(season.id);
+        }
       }
 
       console.log(`Winner set for ${seasonName} Round ${round} Match ${matchNumber}: ${winnerName || 'none'}`);
@@ -818,19 +821,18 @@ export const brackets = {
       });
 
       // Create Finals (Round 4)
-      const finalMatch = {
-        seasonId: seasonId,
-        round: 4,
-        matchNumber: 1,
-        player1Id: null,
-        player2Id: null,
-        winnerId: null
-      };
-
-      // If we have exactly 2 semifinals, we can create the final
       if (semifinalMatches.length === 2) {
-        // We'll populate the final when semifinal winners are determined
-        await client.bracket.create({ data: finalMatch });
+        // Populate the final with the two semifinal winners
+        await client.bracket.create({
+          data: {
+            seasonId: seasonId,
+            round: 4,
+            matchNumber: 1,
+            player1Id: semifinalMatches[0].winner?.id || null,
+            player2Id: semifinalMatches[1].winner?.id || null,
+            winnerId: null
+          }
+        });
       }
 
       console.log('Final propagation completed successfully');
