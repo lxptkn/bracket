@@ -27,15 +27,24 @@ export default function AdminPage() {
         setSeasons(arr)
         setSelectedSeason(arr[0] ?? '')
       })
-      .catch(() => { setSeasons([]) })
+      .catch((error) => { 
+        console.error('Error fetching seasons:', error)
+        setSeasons([]) 
+      })
     fetch('/api/admin/participants')
       .then((r)=>r.json())
       .then((list)=> setGlobalParticipants(Array.isArray(list) ? list : []))
-      .catch(()=> setGlobalParticipants([]))
+      .catch((error)=> { 
+        console.error('Error fetching participants:', error)
+        setGlobalParticipants([]) 
+      })
     fetch('/api/admin/moderators')
       .then((r)=>r.json())
       .then((list)=> setGlobalModerators(Array.isArray(list) ? list : []))
-      .catch(()=> setGlobalModerators([]))
+      .catch((error)=> { 
+        console.error('Error fetching moderators:', error)
+        setGlobalModerators([]) 
+      })
   }, [])
 
   useEffect(() => {
@@ -43,15 +52,24 @@ export default function AdminPage() {
     fetch(`/api/admin/seasons/${selectedSeason}/participants`)
       .then((r)=>r.json())
       .then((list)=> setParticipants(Array.isArray(list) ? list : []))
-      .catch(()=> setParticipants([]))
+      .catch((error)=> { 
+        console.error('Error fetching season participants:', error)
+        setParticipants([]) 
+      })
     fetch(`/api/seasons/${selectedSeason}`)
       .then(r=>r.json())
       .then((meta)=>{ setMonth1(meta?.month1 ?? ''); setMonth2(meta?.month2 ?? '') })
-      .catch(()=> { setMonth1(''); setMonth2('') })
+      .catch((error)=> { 
+        console.error('Error fetching season metadata:', error)
+        setMonth1(''); setMonth2('') 
+      })
     fetch(`/api/admin/seasons/${selectedSeason}/moderators`)
       .then(r=>r.json())
       .then((list)=> setSeasonModerators(Array.isArray(list) ? list : []))
-      .catch(()=> setSeasonModerators([]))
+      .catch((error)=> { 
+        console.error('Error fetching season moderators:', error)
+        setSeasonModerators([]) 
+      })
   }, [selectedSeason])
 
   const availableToAdd = useMemo(() => {
@@ -112,7 +130,7 @@ export default function AdminPage() {
           <button className="border border-slate-700 bg-slate-900 text-slate-200 px-3 py-1" onClick={createSeason}>Add</button>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
-          {seasons.map((s) => (
+          {(Array.isArray(seasons) ? seasons : []).map((s) => (
             <div key={s} className="flex items-center justify-between border border-slate-700 bg-slate-800 px-3 py-2">
               <span className="truncate pr-2">{s}</span>
               <div className="flex items-center gap-2">
@@ -173,7 +191,7 @@ export default function AdminPage() {
             <div className="border border-slate-700 bg-slate-900 p-3">
               <div className="font-semibold mb-2">Global Participants</div>
               <div className="flex flex-wrap gap-2">
-                {availableToAdd.map((p)=> (
+                {(Array.isArray(availableToAdd) ? availableToAdd : []).map((p)=> (
                   <span key={p.name} className="inline-flex items-center gap-1 bg-slate-800 text-slate-200 px-3 py-1 text-sm border border-slate-700">
                     <span>{p.name}</span>
                     <button title="Add to this season" className="w-6 h-6 inline-flex items-center justify-center bg-emerald-700 text-white border border-emerald-600" onClick={async ()=>{
@@ -193,7 +211,7 @@ export default function AdminPage() {
             <div className="border border-slate-700 bg-slate-900 p-3">
               <div className="font-semibold mb-2">Season Participants ({selectedSeason})</div>
               <div className="flex flex-wrap gap-2">
-                {participants.sort((a,b)=>a.name.localeCompare(b.name)).map((p)=> (
+                {(Array.isArray(participants) ? participants.sort((a,b)=>a.name.localeCompare(b.name)) : []).map((p)=> (
                   <span key={p.name} className="inline-flex items-center gap-1 bg-slate-800 text-slate-200 px-3 py-1 text-sm border border-slate-700">
                     <span>{p.name}</span>
                     <button title="Remove from this season" className="w-6 h-6 inline-flex items-center justify-center bg-red-700 text-white border border-red-600" onClick={async ()=>{
@@ -238,9 +256,9 @@ export default function AdminPage() {
             <div className="border border-slate-700 bg-slate-900 p-3">
               <div className="font-semibold mb-2">Global Moderators</div>
               <div className="flex flex-wrap gap-2">
-                {globalModerators
-                  .filter(m => !seasonModerators.some(s => s.name.toLowerCase() === m.name.toLowerCase()))
-                  .map((m)=> (
+                {(Array.isArray(globalModerators) ? globalModerators
+                  .filter(m => !(Array.isArray(seasonModerators) ? seasonModerators : []).some(s => s.name.toLowerCase() === m.name.toLowerCase()))
+                  : []).map((m)=> (
                   <span key={m.name} className="inline-flex items-center gap-1 bg-slate-800 text-slate-200 px-3 py-1 text-sm border border-slate-700">
                     <span>{m.name}</span>
                     <button title="Add to this season" className="w-6 h-6 inline-flex items-center justify-center bg-emerald-700 text-white border border-emerald-600" onClick={async ()=>{
@@ -259,7 +277,7 @@ export default function AdminPage() {
             <div className="border border-slate-700 bg-slate-900 p-3">
               <div className="font-semibold mb-2">Season Moderators ({selectedSeason})</div>
               <div className="flex flex-wrap gap-2">
-                {seasonModerators.map((m)=> (
+                {(Array.isArray(seasonModerators) ? seasonModerators : []).map((m)=> (
                   <span key={m.name} className="inline-flex items-center gap-1 bg-slate-800 text-slate-200 px-3 py-1 text-sm border border-slate-700">
                     <span>{m.name}</span>
                     <button title="Remove from this season" className="w-6 h-6 inline-flex items-center justify-center bg-red-700 text-white border border-red-600" onClick={async ()=>{
@@ -319,11 +337,11 @@ function RoundWinnersManager({ season, refreshSignal }: { season: string; refres
   return (
     <div className="space-y-4">
       <h2 className="text-xl font-semibold">Set Winners</h2>
-      {rounds.map((round) => (
+      {(Array.isArray(rounds) ? rounds : []).map((round) => (
         <div key={round} className="border border-slate-700 bg-slate-900 p-3">
           <div className="font-semibold mb-2 text-slate-100">{round}</div>
           <div className="space-y-2">
-            {(bracket[round] || []).map((m) => (
+            {(Array.isArray(bracket[round]) ? bracket[round] : []).map((m) => (
               <div key={`${round}-${m.matchNumber}`} className="flex items-center gap-2">
                 <span className="w-20 text-sm text-slate-400">Match {m.matchNumber}</span>
                 <button
@@ -376,7 +394,7 @@ function MonthSelectors({ seasons, selectedSeason, onChangeSeason, season, month
       <div className="flex flex-wrap items-center gap-3">
         <label className="text-sm">Editing:</label>
         <select className="border border-slate-700 bg-slate-900 text-slate-200 px-2 py-1" value={selectedSeason} onChange={(e)=> onChangeSeason(e.target.value)}>
-          {seasons.map((s)=> (
+          {(Array.isArray(seasons) ? seasons : []).map((s)=> (
             <option key={s} value={s}>{s}</option>
           ))}
         </select>
@@ -384,10 +402,10 @@ function MonthSelectors({ seasons, selectedSeason, onChangeSeason, season, month
       <div className="flex flex-wrap items-center gap-3">
         <label className="text-sm">Month</label>
         <select className="border border-slate-700 bg-slate-900 text-slate-200 px-2 py-1" value={a.m} onChange={(e)=> onChange(f(a.y, Number(e.target.value)), f(a.y + (Number(e.target.value) === 11 ? 1 : 0), (Number(e.target.value) + 1) % 12))}>
-          {months.map((m)=> (<option key={m.index} value={m.index}>{m.name}</option>))}
+          {(Array.isArray(months) ? months : []).map((m)=> (<option key={m.index} value={m.index}>{m.name}</option>))}
         </select>
         <select className="border border-slate-700 bg-slate-900 text-slate-200 px-2 py-1" value={a.y} onChange={(e)=> onChange(f(Number(e.target.value), a.m), f(Number(e.target.value) + (a.m === 11 ? 1 : 0), (a.m + 1) % 12))}>
-          {years.map((y)=> (<option key={y} value={y}>{y}</option>))}
+          {(Array.isArray(years) ? years : []).map((y)=> (<option key={y} value={y}>{y}</option>))}
         </select>
 
         <div className="flex items-center gap-2">

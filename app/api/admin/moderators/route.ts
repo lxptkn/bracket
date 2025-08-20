@@ -6,12 +6,12 @@ export const runtime = 'nodejs'
 export async function GET() {
   try {
     const list = await moderators.getAll()
-    // Ensure alphabetical order by name
-    list.sort((a, b) => a.name.localeCompare(b.name))
-    return NextResponse.json(list)
+    // Ensure we always return an array and it's sorted
+    const sortedList = Array.isArray(list) ? list.sort((a, b) => a.name.localeCompare(b.name)) : []
+    return NextResponse.json(sortedList)
   } catch (error) {
     console.error('Error fetching moderators:', error)
-    return NextResponse.json({ error: 'Failed to fetch moderators' }, { status: 500 })
+    return NextResponse.json([])
   }
 }
 

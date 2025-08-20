@@ -4,10 +4,11 @@ import { seasons } from '@/lib/db-operations'
 export async function GET() {
   try {
     const seasonsList = await seasons.getAll()
-    return NextResponse.json(seasonsList)
+    // Ensure we always return an array
+    return NextResponse.json(Array.isArray(seasonsList) ? seasonsList : [])
   } catch (error) {
     console.error('Error fetching seasons:', error)
-    return NextResponse.json({ error: 'Failed to fetch seasons' }, { status: 500 })
+    return NextResponse.json([])
   }
 }
 

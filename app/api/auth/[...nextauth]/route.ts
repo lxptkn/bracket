@@ -35,14 +35,17 @@ const authOptions: NextAuthOptions = {
         }
 
         if (!credentials?.email || !credentials?.password) {
+          console.error('[auth] Missing credentials')
           return null
         }
         
         if (!adminEmailRaw) {
+          console.error('[auth] Missing ADMIN_EMAIL')
           return null
         }
         
         if (!adminHashRaw) {
+          console.error('[auth] Missing ADMIN_PASSWORD_HASH')
           return null
         }
 
@@ -50,6 +53,7 @@ const authOptions: NextAuthOptions = {
         const expectedEmail = adminEmailRaw.trim().toLowerCase()
         
         if (inputEmail !== expectedEmail) {
+          console.error('[auth] Email mismatch', { inputEmail, expectedEmail })
           return null
         }
 
@@ -64,10 +68,12 @@ const authOptions: NextAuthOptions = {
         
         // Validate hash format
         if (!adminHash.startsWith('$2')) {
+          console.error('[auth] Hash does not start with $2', { length: adminHash.length })
           return null
         }
         
         if (adminHash.length !== 60) {
+          console.error('[auth] Hash length not 60', { length: adminHash.length })
           return null
         }
 
@@ -75,6 +81,7 @@ const authOptions: NextAuthOptions = {
           const passwordMatch = await compare(credentials.password, adminHash)
           
           if (!passwordMatch) {
+            console.error('[auth] Password compare failed')
             return null
           }
           
@@ -85,6 +92,7 @@ const authOptions: NextAuthOptions = {
             role: 'admin' 
           } as any
         } catch (error) {
+          console.error('[auth] Exception during authorize', error)
           return null
         }
       },

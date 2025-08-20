@@ -41,7 +41,7 @@ function CalendarBox({ title, subtitle, firstDay, days }: { title: string; subti
         {['S','M','T','W','T','F','S'].map((d, i) => (
           <div key={`${d}-${i}`} className="font-medium text-slate-300">{d}</div>
         ))}
-        {cells.map((d, i) => (
+        {(Array.isArray(cells) ? cells : []).map((d, i) => (
           <div key={i} className="py-1 text-slate-100">{d ?? ''}</div>
         ))}
       </div>

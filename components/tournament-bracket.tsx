@@ -52,7 +52,7 @@ export function TournamentBracket({ data }: { data: BracketData }) {
     <div className="overflow-x-auto overflow-y-hidden">
       <div className="relative p-6 bg-transparent" style={{ minHeight: `${totalHeight + extraContainerHeight}px`, width: `${totalWidth}px` }}>
         {/* Render Match Card Columns and Titles with Absolute Positioning */}
-        {rounds.map(([roundName, matches], roundIndex) => {
+        {(Array.isArray(rounds) ? rounds : []).map(([roundName, matches], roundIndex) => {
           const columnLeft = [R1_LEFT, QF_LEFT, SF_LEFT, F_LEFT][roundIndex];
           return (
             <div key={roundName}>
@@ -66,7 +66,7 @@ export function TournamentBracket({ data }: { data: BracketData }) {
               >
                 {roundName}
               </h3>
-              {matches.map((match, index) => {
+              {(Array.isArray(matches) ? matches : []).map((match, index) => {
                 const matchCenterY = getMatchCenterY(roundIndex, index);
                 return (
                   <div
@@ -87,7 +87,7 @@ export function TournamentBracket({ data }: { data: BracketData }) {
 
         {/* Render Lines */}
         {/* Lines from Round 1 to Quarterfinals */}
-        {(data["Round 1"] ?? []).map((match, index) => {
+        {(Array.isArray(data["Round 1"]) ? data["Round 1"] : []).map((match, index) => {
           if (index % 2 !== 0) return null; // Only draw lines for the top match of each pair
 
           const topMatchCenterY = getMatchCenterY(0, index);
@@ -139,7 +139,7 @@ export function TournamentBracket({ data }: { data: BracketData }) {
         })}
 
         {/* Lines from Quarterfinals to Semifinals */}
-        {(data["Quarterfinals"] ?? []).map((match, index) => {
+        {(Array.isArray(data["Quarterfinals"]) ? data["Quarterfinals"] : []).map((match, index) => {
           if (index % 2 !== 0) return null;
 
           const topMatchCenterY = getMatchCenterY(1, index);
@@ -191,7 +191,7 @@ export function TournamentBracket({ data }: { data: BracketData }) {
         })}
 
         {/* Lines from Semifinals to Finals */}
-        {(data["Semifinals"] ?? []).map((match, index) => {
+        {(Array.isArray(data["Semifinals"]) ? data["Semifinals"] : []).map((match, index) => {
           if (index % 2 !== 0) return null;
 
           const topMatchCenterY = getMatchCenterY(2, index);
