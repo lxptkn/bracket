@@ -14,7 +14,7 @@ export async function GET() {
 
     const list = await moderators.getAll()
     // Ensure we always return an array and it's sorted
-    const sortedList = Array.isArray(list) ? list.sort((a, b) => a.localeCompare(b)) : []
+    const sortedList = Array.isArray(list) ? list.sort((a, b) => a.name.localeCompare(b.name)) : []
     return NextResponse.json(sortedList)
   } catch (error) {
     console.error('Error fetching moderators:', error)

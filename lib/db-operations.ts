@@ -276,7 +276,7 @@ export const moderators = {
         select: { name: true },
         orderBy: { name: 'asc' }
       });
-      return result.map(row => row.name);
+      return result.map(row => ({ name: row.name }));
     } catch (error) {
       console.error('Error fetching moderators:', error);
       return [];
