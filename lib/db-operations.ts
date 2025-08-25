@@ -4,7 +4,7 @@ import { PrismaClient } from '@prisma/client';
 let prisma: PrismaClient | null = null;
 
 try {
-  if (process.env.DATABASE_URL) {
+  if (process.env.POSTGRES_URL || process.env.DATABASE_URL) {
     prisma = new PrismaClient();
   }
 } catch (error) {
@@ -14,7 +14,7 @@ try {
 // Helper function to check if database is available
 function getPrisma() {
   if (!prisma) {
-    throw new Error('Database not available. Make sure DATABASE_URL is set.');
+    throw new Error('Database not available. Make sure POSTGRES_URL or DATABASE_URL is set.');
   }
   return prisma;
 }
@@ -22,11 +22,10 @@ function getPrisma() {
 // Helper function to check if we should skip database operations
 function shouldSkipDatabase() {
   // Check for build-time indicators
-  const isBuildTime = process.env.NEXT_PHASE === 'phase-production-build' || 
-                      process.env.NODE_ENV === 'production' && !process.env.DATABASE_URL ||
-                      process.env.VERCEL_ENV === 'production' && !process.env.DATABASE_URL;
+  const isBuildTime = process.env.NEXT_PHASE === 'phase-production-build';
   
-  return !process.env.DATABASE_URL || isBuildTime;
+  // Don't skip if we have database URLs and we're not in build time
+  return (!process.env.POSTGRES_URL && !process.env.DATABASE_URL) || isBuildTime;
 }
 
 // Helper function to safely get Prisma client
@@ -174,6 +173,18 @@ export const participants = {
     });
   },
 
+  // Remove participant globally
+  async removeGlobalParticipant(name: string) {
+    if (shouldSkipDatabase()) throw new Error('Database not available during build');
+    
+    const client = safeGetPrisma();
+    if (!client) throw new Error('Database not available');
+    
+    await client.participant.deleteMany({
+      where: { name }
+    });
+  },
+
   // Add participant to season
   async addToSeason(participantName: string, seasonName: string) {
     if (shouldSkipDatabase()) throw new Error('Database not available during build');
@@ -265,7 +276,7 @@ export const moderators = {
         select: { name: true },
         orderBy: { name: 'asc' }
       });
-      return result;
+      return result.map(row => row.name);
     } catch (error) {
       console.error('Error fetching moderators:', error);
       return [];
@@ -289,7 +300,7 @@ export const moderators = {
         },
         orderBy: { moderator: { name: 'asc' } }
       });
-      return result.map(row => row.moderator);
+      return result.map(row => ({ name: row.moderator.name }));
     } catch (error) {
       console.error('Error fetching season moderators:', error);
       return [];
@@ -305,6 +316,18 @@ export const moderators = {
     
     await client.moderator.create({
       data: { name }
+    });
+  },
+
+  // Remove moderator globally
+  async removeGlobalModerator(name: string) {
+    if (shouldSkipDatabase()) throw new Error('Database not available during build');
+    
+    const client = safeGetPrisma();
+    if (!client) throw new Error('Database not available');
+    
+    await client.moderator.deleteMany({
+      where: { name }
     });
   },
 

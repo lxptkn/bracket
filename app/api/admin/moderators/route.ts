@@ -7,14 +7,14 @@ export const dynamic = 'force-dynamic'
 export async function GET() {
   try {
     // Check if we're in a build context or don't have database access
-    if (!process.env.DATABASE_URL || process.env.NEXT_PHASE === 'phase-production-build') {
+    if ((!process.env.POSTGRES_URL && !process.env.DATABASE_URL) || process.env.NEXT_PHASE === 'phase-production-build') {
       console.log('Build time or no database detected, returning empty moderators data');
       return NextResponse.json([]);
     }
 
     const list = await moderators.getAll()
     // Ensure we always return an array and it's sorted
-    const sortedList = Array.isArray(list) ? list.sort((a, b) => a.name.localeCompare(b.name)) : []
+    const sortedList = Array.isArray(list) ? list.sort((a, b) => a.localeCompare(b)) : []
     return NextResponse.json(sortedList)
   } catch (error) {
     console.error('Error fetching moderators:', error)
@@ -42,8 +42,7 @@ export async function DELETE(req: Request) {
     if (!name || typeof name !== 'string') {
       return NextResponse.json({ error: 'name required' }, { status: 400 })
     }
-    // TODO: Implement removeGlobalModerator in db-operations
-    // For now, just return success
+    await moderators.removeGlobalModerator(name)
     return NextResponse.json({ ok: true })
   } catch (error) {
     console.error('Error removing moderator:', error)

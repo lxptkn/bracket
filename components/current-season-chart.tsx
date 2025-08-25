@@ -95,13 +95,13 @@ export function CurrentSeasonChart({ season }: { season: string | null }) {
             <div className="space-y-4">
               <CalendarBox
                 title={monthName(m1.monthIndex)}
-                subtitle="Round of 16"
+                subtitle="Round 1"
                 firstDay={s1.first}
                 days={s1.firstHalf}
               />
               <CalendarBox
                 title={monthName(m1.monthIndex)}
-                subtitle="Round of 8"
+                subtitle="Quarterfinals"
                 firstDay={s1.first}
                 days={s1.secondHalf}
               />

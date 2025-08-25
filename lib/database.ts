@@ -5,13 +5,13 @@ let prisma: PrismaClient | null = null;
 
 try {
   // Check if we're in a build context or don't have database access
-  if (process.env.DATABASE_URL && 
+  if ((process.env.POSTGRES_URL || process.env.DATABASE_URL) && 
       process.env.NEXT_PHASE !== 'phase-production-build' &&
       process.env.VERCEL_ENV !== 'production') {
     prisma = new PrismaClient();
     console.log('Database module loaded with Prisma');
   } else {
-    console.log('Database module loaded - no DATABASE_URL found or build time detected, skipping database operations');
+    console.log('Database module loaded - no POSTGRES_URL or DATABASE_URL found or build time detected, skipping database operations');
   }
 } catch (error) {
   console.warn('Prisma client not available locally, skipping database operations');

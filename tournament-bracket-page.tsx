@@ -45,7 +45,7 @@ export default function TournamentBracketPage() {
             <div className="flex items-center gap-3">
               <Trophy className="h-8 w-8 text-slate-300" />
               <div>
-                <h1 className="text-3xl font-serif tracking-wide text-slate-100">Bracket</h1>
+                <h1 className="text-3xl font-serif tracking-wide text-slate-100">Brackets</h1>
               </div>
             </div>
             <div className="flex items-center gap-3">

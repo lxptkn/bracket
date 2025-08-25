@@ -59,16 +59,6 @@ export function TournamentBracket({ data, onSetWinner }: {
           const columnLeft = [R1_LEFT, QF_LEFT, SF_LEFT, F_LEFT][roundIndex];
           return (
             <div key={roundName}>
-              <h3
-                className="absolute text-lg font-serif tracking-wide text-slate-300 text-center"
-                style={{
-                  left: `${columnLeft}px`,
-                  top: '0px', // Position title at the top of the bracket
-                  width: `${CARD_WIDTH}px`,
-                }}
-              >
-                {roundName}
-              </h3>
               {(Array.isArray(matches) ? matches : []).map((match, index) => {
                 const matchCenterY = getMatchCenterY(roundIndex, index);
                 return (

@@ -7,8 +7,8 @@ export const dynamic = 'force-dynamic'
 export async function POST(req: Request) {
   try {
     // Check if we're in a build context or don't have database access
-    if (!process.env.DATABASE_URL || process.env.NEXT_PHASE === 'phase-production-build') {
-      console.log('Build time or no database detected, skipping season creation');
+    if ((!process.env.POSTGRES_URL && !process.env.DATABASE_URL) || process.env.NEXT_PHASE === 'phase-production-build') {
+      console.log('Build time or no database detected, cannot create season');
       return NextResponse.json({ error: 'Database not available during build' }, { status: 503 });
     }
 
@@ -27,8 +27,8 @@ export async function POST(req: Request) {
 export async function DELETE(req: Request) {
   try {
     // Check if we're in a build context or don't have database access
-    if (!process.env.DATABASE_URL || process.env.NEXT_PHASE === 'phase-production-build') {
-      console.log('Build time or no database detected, skipping season deletion');
+    if ((!process.env.POSTGRES_URL && !process.env.DATABASE_URL) || process.env.NEXT_PHASE === 'phase-production-build') {
+      console.log('Build time or no database detected, cannot delete season');
       return NextResponse.json({ error: 'Database not available during build' }, { status: 503 });
     }
 

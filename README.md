@@ -1,4 +1,4 @@
-## Citadel Chess – Admin Guide
+## Brackets – Admin Guide
 
 This document explains how to manage seasons, participants, moderators, and brackets using the built‑in admin UI, plus reasonable limits for scale.
 

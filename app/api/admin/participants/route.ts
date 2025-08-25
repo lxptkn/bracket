@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic'
 export async function GET() {
   try {
     // Check if we're in a build context or don't have database access
-    if (!process.env.DATABASE_URL || process.env.NEXT_PHASE === 'phase-production-build') {
+    if ((!process.env.POSTGRES_URL && !process.env.DATABASE_URL) || process.env.NEXT_PHASE === 'phase-production-build') {
       console.log('Build time or no database detected, returning empty participants data');
       return NextResponse.json([]);
     }
@@ -42,8 +42,7 @@ export async function DELETE(req: Request) {
     if (!name || typeof name !== 'string') {
       return NextResponse.json({ error: 'name required' }, { status: 400 })
     }
-    // TODO: Implement removeGlobalParticipant in db-operations
-    // For now, just return success
+    await participants.removeGlobalParticipant(name)
     return NextResponse.json({ ok: true })
   } catch (error) {
     console.error('Error removing participant:', error)
