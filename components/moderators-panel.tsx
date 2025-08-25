@@ -22,7 +22,7 @@ export function ModeratorsPanel({ season }: { season: string | null }) {
           {Array.from({ length: 8 }).map((_, i) => {
             const mod = mods[i]
             return (
-              <div key={i} className="h-16 border border-slate-700 bg-slate-800 flex items-center justify-center text-sm font-medium text-slate-200">
+              <div key={i} className={`h-16 border border-slate-700 flex items-center justify-center text-sm font-medium text-slate-200 ${mod ? 'bg-slate-800' : 'bg-slate-900'}`}>
                 {mod ? mod.name : 'TBD'}
               </div>
             )
