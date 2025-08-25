@@ -288,7 +288,7 @@ export default function AdminPage() {
                   </span>
                 ))}
                 {(!seasonModerators || seasonModerators.length === 0) && (
-                  <span className="text-sm text-slate-400">No moderators in this season yet.</span>
+                  <span className="text-sm text-slate-400 bg-slate-800 px-3 py-1 border border-slate-700">No moderators in this season yet.</span>
                 )}
               </div>
             </div>

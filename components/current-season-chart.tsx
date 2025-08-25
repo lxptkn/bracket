@@ -36,7 +36,7 @@ function CalendarBox({ title, subtitle, firstDay, days }: { title: string; subti
 
   return (
     <div className="bg-slate-800 text-slate-200 p-3 border border-slate-700">
-      <div className="text-center font-serif tracking-wide font-medium mb-2 text-slate-200">{subtitle}</div>
+      <div className="text-center font-serif tracking-wide font-medium mb-2 text-slate-200 bg-slate-900 py-1 px-2 rounded">{subtitle}</div>
       <div className="grid grid-cols-7 gap-1 text-center text-sm">
         {['S','M','T','W','T','F','S'].map((d, i) => (
           <div key={`${d}-${i}`} className="font-medium text-slate-300">{d}</div>
