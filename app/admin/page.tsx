@@ -73,8 +73,8 @@ export default function AdminPage() {
   }, [selectedSeason])
 
   const availableToAdd = useMemo(() => {
-    const currentNames = new Set(participants.map(p=>p.name.toLowerCase()))
-    return [...globalParticipants].filter(p=>!currentNames.has(p.name.toLowerCase())).sort((a,b)=>a.name.localeCompare(b.name))
+    const currentNames = new Set((participants || []).map(p => p?.name?.toLowerCase()).filter(Boolean))
+    return [...(globalParticipants || [])].filter(p => p?.name && !currentNames.has(p.name.toLowerCase())).sort((a, b) => a.name.localeCompare(b.name))
   }, [participants, globalParticipants])
 
   if (status === 'loading') return null
@@ -191,7 +191,7 @@ export default function AdminPage() {
             <div className="border border-slate-700 bg-slate-900 p-3">
               <div className="font-semibold mb-2">Global Participants</div>
               <div className="flex flex-wrap gap-2">
-                {(Array.isArray(availableToAdd) ? availableToAdd : []).map((p)=> (
+                {(Array.isArray(availableToAdd) ? availableToAdd : []).map((p)=> p?.name ? (
                   <span key={p.name} className="inline-flex items-center gap-1 bg-slate-800 text-slate-200 px-3 py-1 text-sm border border-slate-700">
                     <span>{p.name}</span>
                     <button title="Add to this season" className="w-6 h-6 inline-flex items-center justify-center bg-emerald-700 text-white border border-emerald-600" onClick={async ()=>{
@@ -201,7 +201,7 @@ export default function AdminPage() {
                       setBracketRefresh((x)=>x+1)
                     }}>+</button>
                   </span>
-                ))}
+                ) : null)}
                 {availableToAdd.length === 0 && (
                   <span className="text-sm text-slate-400">All global participants are already in this season.</span>
                 )}
@@ -211,7 +211,7 @@ export default function AdminPage() {
             <div className="border border-slate-700 bg-slate-900 p-3">
               <div className="font-semibold mb-2">Season Participants ({selectedSeason})</div>
               <div className="flex flex-wrap gap-2">
-                {(Array.isArray(participants) ? participants.sort((a,b)=>a.name.localeCompare(b.name)) : []).map((p)=> (
+                {(Array.isArray(participants) ? participants.filter(p => p?.name).sort((a,b)=>a.name.localeCompare(b.name)) : []).map((p)=> (
                   <span key={p.name} className="inline-flex items-center gap-1 bg-slate-800 text-slate-200 px-3 py-1 text-sm border border-slate-700">
                     <span>{p.name}</span>
                     <button title="Remove from this season" className="w-6 h-6 inline-flex items-center justify-center bg-red-700 text-white border border-red-600" onClick={async ()=>{
@@ -222,7 +222,7 @@ export default function AdminPage() {
                     }}>-</button>
                   </span>
                 ))}
-                {participants.length === 0 && (
+                {(!participants || participants.length === 0) && (
                   <span className="text-sm text-slate-400">No participants in this season yet.</span>
                 )}
               </div>
@@ -257,7 +257,7 @@ export default function AdminPage() {
               <div className="font-semibold mb-2">Global Moderators</div>
               <div className="flex flex-wrap gap-2">
                 {(Array.isArray(globalModerators) ? globalModerators
-                  .filter(m => !(Array.isArray(seasonModerators) ? seasonModerators : []).some(s => s.name.toLowerCase() === m.name.toLowerCase()))
+                  .filter(m => m?.name && !(Array.isArray(seasonModerators) ? seasonModerators : []).some(s => s?.name && s.name.toLowerCase() === m.name.toLowerCase()))
                   : []).map((m)=> (
                   <span key={m.name} className="inline-flex items-center gap-1 bg-slate-800 text-slate-200 px-3 py-1 text-sm border border-slate-700">
                     <span>{m.name}</span>
@@ -277,7 +277,7 @@ export default function AdminPage() {
             <div className="border border-slate-700 bg-slate-900 p-3">
               <div className="font-semibold mb-2">Season Moderators ({selectedSeason})</div>
               <div className="flex flex-wrap gap-2">
-                {(Array.isArray(seasonModerators) ? seasonModerators : []).map((m)=> (
+                {(Array.isArray(seasonModerators) ? seasonModerators.filter(m => m?.name) : []).map((m)=> (
                   <span key={m.name} className="inline-flex items-center gap-1 bg-slate-800 text-slate-200 px-3 py-1 text-sm border border-slate-700">
                     <span>{m.name}</span>
                     <button title="Remove from this season" className="w-6 h-6 inline-flex items-center justify-center bg-red-700 text-white border border-red-600" onClick={async ()=>{
@@ -287,7 +287,7 @@ export default function AdminPage() {
                     }}>-</button>
                   </span>
                 ))}
-                {seasonModerators.length === 0 && (
+                {(!seasonModerators || seasonModerators.length === 0) && (
                   <span className="text-sm text-slate-400">No moderators in this season yet.</span>
                 )}
               </div>
@@ -437,5 +437,3 @@ function MonthSelectors({ seasons, selectedSeason, onChangeSeason, season, month
     </div>
   )
 }
-
-
