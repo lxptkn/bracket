@@ -1,7 +1,14 @@
 import * as React from "react"
 
+/** CSS breakpoint at which we consider the viewport mobile. */
 const MOBILE_BREAKPOINT = 768
 
+/**
+ * useIsMobile
+ *
+ * Returns true if the viewport width is below the mobile breakpoint.
+ * Uses a matchMedia listener to update reactively.
+ */
 export function useIsMobile() {
   const [isMobile, setIsMobile] = React.useState<boolean | undefined>(undefined)
 

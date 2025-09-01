@@ -4,6 +4,10 @@ import { seasons } from '@/lib/db-operations'
 // Force dynamic rendering to prevent build-time execution
 export const dynamic = 'force-dynamic'
 
+/**
+ * GET /api/seasons/[season]
+ * Returns season metadata (month1, month2). Empty strings in build/no-DB contexts.
+ */
 export async function GET(_: Request, context: { params: Promise<{ season: string }> }) {
   try {
     // Check if we're in a build context or don't have database access

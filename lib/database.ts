@@ -1,5 +1,10 @@
 import { PrismaClient } from '@prisma/client';
 
+/**
+ * Lazy-initialized Prisma client for optional database-backed operations.
+ *
+ * In local/dev or build contexts without DB vars, operations are skipped.
+ */
 // Only create Prisma client if we have the required environment variables
 let prisma: PrismaClient | null = null;
 

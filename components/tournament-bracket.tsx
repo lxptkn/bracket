@@ -1,9 +1,13 @@
 import { MatchCard } from "./match-card"
 
+/** Player within a match. */
 type Player = { name: string; seed?: number; score?: number }
+/** Single match including optional winner. */
 type Match = { matchNumber: number; player1: Player; player2: Player; winner?: string }
+/** Round name to list of matches mapping. */
 type BracketData = Record<string, Match[]>
 
+// Visual layout constants for absolute positioning and connector lines
 const CARD_WIDTH = 256; // w-64
 const CARD_HEIGHT = 120; // min-h-[120px] from MatchCard
 const COLUMN_GAP = 125; // Reduced space between card columns for lines (half of 250)
@@ -17,6 +21,10 @@ const F_LEFT = SF_LEFT + CARD_WIDTH + COLUMN_GAP; // 762 + 256 + 125 = 1143
 
 // Calculate top positions for the center of each match card
 // These are adjusted to provide more vertical spacing and fit within the larger container.
+/**
+ * Get the vertical center Y coordinate for a given match by round and index.
+ * This is tuned for readability of connectors across rounds.
+ */
 const getMatchCenterY = (roundIndex: number, matchIndex: number) => {
   // Base offset for top padding and vertical centering
   const baseOffset = 100; 
@@ -33,6 +41,13 @@ const getMatchCenterY = (roundIndex: number, matchIndex: number) => {
   return 0;
 };
 
+/**
+ * Absolute-positioned tournament bracket with connectors between rounds.
+ *
+ * Props:
+ * - `data`: Mapping of round name to matches array.
+ * - `onSetWinner`: Optional callback to set/clear a winner per match.
+ */
 export function TournamentBracket({ data, onSetWinner }: { 
   data: BracketData
   onSetWinner?: (round: string, matchNumber: number, winner: string | null) => void

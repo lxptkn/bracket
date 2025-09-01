@@ -1,5 +1,10 @@
 import { PrismaClient } from '@prisma/client';
 
+/**
+ * Database-backed operations for seasons, participants, moderators, and brackets.
+ *
+ * All functions guard against build-time or missing DB envs and no-op when needed.
+ */
 // Only create Prisma client if we have the required environment variables
 let prisma: PrismaClient | null = null;
 

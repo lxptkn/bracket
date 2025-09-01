@@ -1,6 +1,9 @@
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 
+/**
+ * Props for a single match card, showing two players and allowing winner selection.
+ */
 interface MatchCardProps {
   player1: { name: string; seed?: number; score?: number }
   player2: { name: string; seed?: number; score?: number }
@@ -10,7 +13,12 @@ interface MatchCardProps {
   onSetWinner?: (winner: string | null) => void
 }
 
+/**
+ * Displays a match with two selectable players. Clicking a player toggles them
+ * as the winner (click again to clear). Optional seeds and scores are shown.
+ */
 export function MatchCard({ player1, player2, winner, round, matchNumber, onSetWinner }: MatchCardProps) {
+  // Toggle handler: set winner to clicked player, or clear if already selected
   const handlePlayerClick = (playerName: string) => {
     if (!onSetWinner) return;
     

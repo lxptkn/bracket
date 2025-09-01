@@ -9,6 +9,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useSession, signIn, signOut } from 'next-auth/react'
 import { Button } from '@/components/ui/button'
 
+/**
+ * Top-level public page that shows bracket, current season chart, and moderators.
+ * Allows admins to sign in and jump to the admin dashboard.
+ */
 export default function TournamentBracketPage() {
   const { data: session } = useSession()
   const [seasons, setSeasons] = useState<string[]>([])

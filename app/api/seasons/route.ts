@@ -4,6 +4,10 @@ import { seasons } from '@/lib/db-operations'
 // Force dynamic rendering to prevent build-time execution
 export const dynamic = 'force-dynamic'
 
+/**
+ * GET /api/seasons
+ * Returns a list of season names. In build/no-DB contexts, returns an empty array.
+ */
 export async function GET() {
   try {
     // Check if we're in a build context or don't have database access

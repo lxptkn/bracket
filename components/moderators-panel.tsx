@@ -2,9 +2,16 @@
 import { useEffect, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
+/**
+ * Display up to eight moderators for a given season.
+ *
+ * Fetches the moderators list for `season` and renders placeholder slots
+ * when fewer than eight are assigned.
+ */
 export function ModeratorsPanel({ season }: { season: string | null }) {
   const [mods, setMods] = useState<{ name: string }[]>([])
 
+  // Load season moderators when `season` changes
   useEffect(() => {
     if (!season) return
     fetch(`/api/admin/seasons/${season}/moderators`).then(r=>r.json()).then(setMods)

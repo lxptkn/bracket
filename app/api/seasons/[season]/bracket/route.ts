@@ -6,6 +6,10 @@ export const dynamic = 'force-dynamic'
 
 export const runtime = 'nodejs'
 
+/**
+ * GET /api/seasons/[season]/bracket
+ * Returns the bracket structure for the season, or 404 if none exists.
+ */
 export async function GET(_: Request, context: { params: Promise<{ season: string }> }) {
   try {
     const { season } = await context.params

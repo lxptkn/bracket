@@ -4,6 +4,10 @@ import { seasons } from '@/lib/db-operations'
 // Force dynamic rendering to prevent build-time execution
 export const dynamic = 'force-dynamic'
 
+/**
+ * POST /api/admin/seasons
+ * Creates a new season by name.
+ */
 export async function POST(req: Request) {
   try {
     // Check if we're in a build context or don't have database access
@@ -24,6 +28,10 @@ export async function POST(req: Request) {
   }
 }
 
+/**
+ * DELETE /api/admin/seasons
+ * Deletes a season by name.
+ */
 export async function DELETE(req: Request) {
   try {
     // Check if we're in a build context or don't have database access
@@ -44,6 +52,10 @@ export async function DELETE(req: Request) {
   }
 }
 
+/**
+ * PUT /api/admin/seasons
+ * Updates season months (month1, month2) for a given season.
+ */
 export async function PUT(req: Request) {
   try {
     // Check if we're in a build context or don't have database access

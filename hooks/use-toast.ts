@@ -8,9 +8,11 @@ import type {
   ToastProps,
 } from "@/components/ui/toast"
 
+// Toast system configuration
 const TOAST_LIMIT = 1
 const TOAST_REMOVE_DELAY = 1000000
 
+/** Our internal toast type with an id and optional content fields. */
 type ToasterToast = ToastProps & {
   id: string
   title?: React.ReactNode
@@ -18,6 +20,7 @@ type ToasterToast = ToastProps & {
   action?: ToastActionElement
 }
 
+/** Action names for the toast reducer. */
 const actionTypes = {
   ADD_TOAST: "ADD_TOAST",
   UPDATE_TOAST: "UPDATE_TOAST",
@@ -27,6 +30,7 @@ const actionTypes = {
 
 let count = 0
 
+/** Generate a stable incremental id for new toasts. */
 function genId() {
   count = (count + 1) % Number.MAX_SAFE_INTEGER
   return count.toString()
@@ -56,8 +60,10 @@ interface State {
   toasts: ToasterToast[]
 }
 
+// Track pending timeouts for removal
 const toastTimeouts = new Map<string, ReturnType<typeof setTimeout>>()
 
+/** Schedule a toast for removal after the configured delay. */
 const addToRemoveQueue = (toastId: string) => {
   if (toastTimeouts.has(toastId)) {
     return
@@ -74,6 +80,9 @@ const addToRemoveQueue = (toastId: string) => {
   toastTimeouts.set(toastId, timeout)
 }
 
+/**
+ * Reducer for toast operations: add, update, dismiss (close), and remove.
+ */
 export const reducer = (state: State, action: Action): State => {
   switch (action.type) {
     case "ADD_TOAST":
@@ -129,10 +138,12 @@ export const reducer = (state: State, action: Action): State => {
   }
 }
 
+// Subscribers updated by our custom dispatch
 const listeners: Array<(state: State) => void> = []
 
 let memoryState: State = { toasts: [] }
 
+/** Dispatch an action and notify listeners. */
 function dispatch(action: Action) {
   memoryState = reducer(memoryState, action)
   listeners.forEach((listener) => {
@@ -142,6 +153,7 @@ function dispatch(action: Action) {
 
 type Toast = Omit<ToasterToast, "id">
 
+/** Create and show a toast. Returns helpers to update or dismiss it. */
 function toast({ ...props }: Toast) {
   const id = genId()
 
@@ -171,6 +183,10 @@ function toast({ ...props }: Toast) {
   }
 }
 
+/**
+ * React hook to access the toast system state and actions.
+ * Returns the current list of toasts and helpers: `toast` and `dismiss`.
+ */
 function useToast() {
   const [state, setState] = React.useState<State>(memoryState)
 

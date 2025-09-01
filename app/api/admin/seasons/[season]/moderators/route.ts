@@ -6,6 +6,10 @@ export const dynamic = 'force-dynamic'
 
 export const runtime = 'nodejs'
 
+/**
+ * GET /api/admin/seasons/[season]/moderators
+ * Lists moderators assigned to the season.
+ */
 export async function GET(_: Request, context: { params: Promise<{ season: string }> }) {
   try {
     const { season } = await context.params
@@ -16,6 +20,10 @@ export async function GET(_: Request, context: { params: Promise<{ season: strin
   }
 }
 
+/**
+ * POST /api/admin/seasons/[season]/moderators
+ * Adds a moderator to the season, creating globally if necessary.
+ */
 export async function POST(req: Request, context: { params: Promise<{ season: string }> }) {
   try {
     const { season } = await context.params
@@ -39,6 +47,10 @@ export async function POST(req: Request, context: { params: Promise<{ season: st
   }
 }
 
+/**
+ * DELETE /api/admin/seasons/[season]/moderators
+ * Removes a moderator from the season by name.
+ */
 export async function DELETE(req: Request, context: { params: Promise<{ season: string }> }) {
   try {
     const { season } = await context.params

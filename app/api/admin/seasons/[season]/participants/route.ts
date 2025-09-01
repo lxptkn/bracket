@@ -3,6 +3,10 @@ import { participants, brackets } from '@/lib/db-operations'
 
 export const runtime = 'nodejs'
 
+/**
+ * GET /api/admin/seasons/[season]/participants
+ * Lists participants assigned to the season.
+ */
 export async function GET(_: Request, context: { params: Promise<{ season: string }> }) {
   try {
     const { season } = await context.params
@@ -13,6 +17,10 @@ export async function GET(_: Request, context: { params: Promise<{ season: strin
   }
 }
 
+/**
+ * POST /api/admin/seasons/[season]/participants
+ * Adds a participant to the season, creating globally if needed.
+ */
 export async function POST(req: Request, context: { params: Promise<{ season: string }> }) {
   try {
     const { season } = await context.params
@@ -36,6 +44,10 @@ export async function POST(req: Request, context: { params: Promise<{ season: st
   }
 }
 
+/**
+ * DELETE /api/admin/seasons/[season]/participants
+ * Removes a participant from the season by name.
+ */
 export async function DELETE(req: Request, context: { params: Promise<{ season: string }> }) {
   try {
     const { season } = await context.params
@@ -48,6 +60,10 @@ export async function DELETE(req: Request, context: { params: Promise<{ season: 
   }
 }
 
+/**
+ * PUT /api/admin/seasons/[season]/participants
+ * Regenerates the bracket for the season from current participants.
+ */
 export async function PUT(_: Request, context: { params: Promise<{ season: string }> }) {
   try {
     const { season } = await context.params

@@ -4,6 +4,10 @@ import { moderators } from '@/lib/db-operations'
 // Force dynamic rendering to prevent build-time execution
 export const dynamic = 'force-dynamic'
 
+/**
+ * GET /api/admin/moderators
+ * Returns global moderators, sorted by name. Empty in build/no-DB contexts.
+ */
 export async function GET() {
   try {
     // Check if we're in a build context or don't have database access
@@ -22,6 +26,10 @@ export async function GET() {
   }
 }
 
+/**
+ * POST /api/admin/moderators
+ * Adds a global moderator by name.
+ */
 export async function POST(req: Request) {
   try {
     const { name } = await req.json()
@@ -36,6 +44,10 @@ export async function POST(req: Request) {
   }
 }
 
+/**
+ * DELETE /api/admin/moderators
+ * Removes a global moderator by name.
+ */
 export async function DELETE(req: Request) {
   try {
     const { name } = await req.json()

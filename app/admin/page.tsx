@@ -3,6 +3,12 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useSession, signIn, signOut } from 'next-auth/react'
 
+/**
+ * Admin dashboard for managing seasons, participants, moderators, and winners.
+ *
+ * - Requires an authenticated admin session (NextAuth).
+ * - Loads global lists and season-specific data, allowing CRUD via API routes.
+ */
 export default function AdminPage() {
   const { data: session, status } = useSession()
   const [seasons, setSeasons] = useState<string[]>([])
@@ -19,6 +25,7 @@ export default function AdminPage() {
   const [newParticipantName, setNewParticipantName] = useState('')
   const [newParticipantSeed, setNewParticipantSeed] = useState('')
 
+  // Initial load: seasons, global participants, global moderators
   useEffect(() => {
     fetch('/api/seasons')
       .then((r) => r.json())
@@ -47,6 +54,7 @@ export default function AdminPage() {
       })
   }, [])
 
+  // Whenever the selected season changes, load its participants, metadata, and moderators
   useEffect(() => {
     if (!selectedSeason) return
     fetch(`/api/admin/seasons/${selectedSeason}/participants`)
@@ -72,6 +80,9 @@ export default function AdminPage() {
       })
   }, [selectedSeason])
 
+  /**
+   * Global participants not yet assigned to the selected season, alphabetized.
+   */
   const availableToAdd = useMemo(() => {
     const currentNames = new Set((participants || []).map(p => p?.name?.toLowerCase()).filter(Boolean))
     return [...(globalParticipants || [])].filter(p => p?.name && !currentNames.has(p.name.toLowerCase())).sort((a, b) => a.name.localeCompare(b.name))
@@ -89,6 +100,9 @@ export default function AdminPage() {
     </div>
   )
 
+  /**
+   * Create a new season, then refresh the seasons list and clear the input.
+   */
   const createSeason = async () => {
     if (!newSeason) return
     await fetch('/api/admin/seasons', {
@@ -306,10 +320,18 @@ export default function AdminPage() {
   )
 }
 
+/**
+ * Manage winners for each round of the current season's bracket.
+ *
+ * Props:
+ * - `season`: Season identifier.
+ * - `refreshSignal`: Optional counter to trigger reloading on external updates.
+ */
 function RoundWinnersManager({ season, refreshSignal }: { season: string; refreshSignal?: number }) {
   const [bracket, setBracket] = useState<Record<string, { matchNumber: number; player1: { name: string }; player2: { name: string }; winner?: string }[]>>({})
   const [loading, setLoading] = useState(true)
 
+  // Load the full bracket JSON for the selected season
   const load = async () => {
     setLoading(true)
     const data = await fetch(`/api/seasons/${season}/bracket`).then((r) => r.json())
@@ -321,6 +343,10 @@ function RoundWinnersManager({ season, refreshSignal }: { season: string; refres
     load()
   }, [season, refreshSignal])
 
+  /**
+   * Set or clear the winner for a specific round and match.
+   * Round names are mapped to numeric indices expected by the API.
+   */
   const setWinner = async (round: string, matchNumber: number, winner: string | null) => {
     // Convert round name to round number
     const roundNumber = round === 'Round 1' ? 1 : 
@@ -375,6 +401,17 @@ function RoundWinnersManager({ season, refreshSignal }: { season: string; refres
   )
 }
 
+/**
+ * Month selectors for setting the two-month window of the season.
+ *
+ * Props:
+ * - `seasons`: All seasons.
+ * - `selectedSeason`: The season currently being edited.
+ * - `onChangeSeason(s)`: Switch the season being edited.
+ * - `season`: Same as `selectedSeason`, passed to API for saving.
+ * - `month1`/`month2`: YYYY-MM strings.
+ * - `onChange(m1, m2)`: Update months in parent state.
+ */
 function MonthSelectors({ seasons, selectedSeason, onChangeSeason, season, month1, month2, onChange }: { seasons: string[]; selectedSeason: string; onChangeSeason: (s: string)=>void; season: string; month1: string; month2: string; onChange: (m1: string, m2: string) => void }) {
   const [showSuccess, setShowSuccess] = useState(false)
   
@@ -384,11 +421,13 @@ function MonthSelectors({ seasons, selectedSeason, onChangeSeason, season, month
   const years = Array.from({ length: currentYear - 1990 + 2 }, (_, i) => 1990 + i)
   const months = Array.from({ length: 12 }, (_, i) => ({ index: i, name: new Date(2000, i, 1).toLocaleString(undefined, { month: 'long' }) }))
 
+  // Parse YYYY-MM into year/month indices; fallback to current year
   const parse = (v: string) => {
     const m = /(\d{4})-(\d{2})/.exec(v)
     if (!m) return { y: currentYear, m: 0 }
     return { y: Number(m[1]), m: Number(m[2]) - 1 }
   }
+  // Format year and month index into YYYY-MM
   const f = (y: number, m: number) => `${y}-${String(m + 1).padStart(2, '0')}`
 
   const a = parse(month1)
@@ -407,6 +446,7 @@ function MonthSelectors({ seasons, selectedSeason, onChangeSeason, season, month
       </div>
       <div className="flex flex-wrap items-center gap-3">
         <label className="text-sm">Month</label>
+        {/* Selecting the first month auto-sets the second to the next month */}
         <select className="border border-slate-700 bg-slate-900 text-slate-200 px-2 py-1" value={a.m} onChange={(e)=> onChange(f(a.y, Number(e.target.value)), f(a.y + (Number(e.target.value) === 11 ? 1 : 0), (Number(e.target.value) + 1) % 12))}>
           {(Array.isArray(months) ? months : []).map((m)=> (<option key={m.index} value={m.index}>{m.name}</option>))}
         </select>

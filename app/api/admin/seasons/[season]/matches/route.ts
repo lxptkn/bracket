@@ -6,6 +6,10 @@ export const dynamic = 'force-dynamic'
 
 export const runtime = 'nodejs'
 
+/**
+ * PUT /api/admin/seasons/[season]/matches
+ * Sets or clears the winner for a given round and match number.
+ */
 export async function PUT(req: Request, context: { params: Promise<{ season: string }> }) {
   try {
     const { season } = await context.params

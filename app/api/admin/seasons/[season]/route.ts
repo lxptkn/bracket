@@ -3,6 +3,10 @@ import { seasons } from '@/lib/db-operations'
 
 export const runtime = 'nodejs'
 
+/**
+ * PUT /api/admin/seasons/[season]
+ * Updates the months for a specific season.
+ */
 export async function PUT(req: Request, context: { params: Promise<{ season: string }> }) {
   try {
     const { season } = await context.params

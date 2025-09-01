@@ -12,6 +12,10 @@ export const metadata: Metadata = {
 
 const garamond = EB_Garamond({ subsets: ['latin'], display: 'swap' })
 
+/**
+ * Root layout applied to all pages. Sets fonts, icons, theme, and wraps
+ * children with the authentication provider.
+ */
 export default function RootLayout({
   children,
 }: Readonly<{
